@@ -22,7 +22,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 connectDB();
 
 // Routes
-app.use("/api/admin", adminRoutes);
+app.use("/api", adminRoutes);
 
 // Test route
 app.get("/", (req, res) => {

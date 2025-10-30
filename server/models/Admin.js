@@ -1,14 +1,26 @@
 import mongoose from "mongoose";
 
-const adminSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    age: { type: Number },
+const adminSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  whatsapp: { type: String, required: true },
+  password: { type: String, required: true },
+  role: {
+    type: String,
+    enum: ["super-affiliate", "normal-affiliate"],
+    default: "normal-affiliate",
   },
-  { timestamps: true }
-);
+  referralCode: { type: String, unique: true },
+  referredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  createdUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+}, { timestamps: true });
 
-const Admins = mongoose.model("Admins", adminSchema);
+// রেফারেল কোড তৈরি
+adminSchema.pre("save", function (next) {
+  if (!this.referralCode) {
+    this.referralCode = this._id.toString().slice(-6).toUpperCase();
+  }
+  next();
+});
 
-export default Admins;
+export default mongoose.model("Admin", adminSchema);

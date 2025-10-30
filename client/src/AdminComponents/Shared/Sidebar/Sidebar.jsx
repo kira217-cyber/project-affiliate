@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router";
 import { FaChevronDown, FaMicrophone } from "react-icons/fa";
 import { TfiReload } from "react-icons/tfi";
 import { TbLogout } from "react-icons/tb";
+import { AuthContext } from "../../../Context/AuthContext";
 
 
 const Sidebar = () => {
@@ -10,6 +11,7 @@ const Sidebar = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [activeSubDropdown, setActiveSubDropdown] = useState(null);
   const location = useLocation(); // To get the current route
+  const {logout} = useContext(AuthContext)
 
   const handleDropdown = (menu) => {
     setActiveDropdown(activeDropdown === menu ? null : menu);

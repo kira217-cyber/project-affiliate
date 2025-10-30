@@ -1,26 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
+import { AuthContext } from "../../Context/AuthContext";
 
 const AdminHome = () => {
-  const fetchAdminData = async () => {
-    try {
-      console.log("API URL:", import.meta.env.VITE_API_URL); // debug
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin`);
-
-      if (!res.ok) {
-        throw new Error(`Failed to fetch data: ${res.status}`);
-      }
-
-      const data = await res.json();
-      console.log("✅ Admin data:", data);
-    } catch (error) {
-      console.error("❌ Error fetching admin data:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
-
+  const {user} = useContext(AuthContext)
+  console.log(user)
   return <div>Admin Home</div>;
 };
 

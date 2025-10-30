@@ -10,6 +10,7 @@ import Master from "../AdminPages/Master/Master";
 import Agent from "../AdminPages/Agent/Agent";
 import SubAgent from "../AdminPages/SubAgent/SubAgent";
 import Users from "../AdminPages/Users/Users";
+import PrivateRoute from "../PrivateRoute/PrivateRoute";
 
 export const routes = createBrowserRouter([
   {
@@ -21,41 +22,47 @@ export const routes = createBrowserRouter([
         element: <Home></Home>,
       },
       {
-        path:"login",
-        element:<Login></Login>
-      },{
-        path:"register",
-        element:<Register></Register>
-      }
+        path: "login",
+        element: <Login></Login>,
+      },
+      {
+        path: "register",
+        element: <Register></Register>,
+      },
     ],
   },
   {
-    path:"ma",
-    element:<AdminLayout></AdminLayout>,
-    children:[
+    path: "ma",
+    element: <AdminLayout></AdminLayout>,
+    children: [
       {
-        path:"mother-admin",
-        element:<AdminHome></AdminHome>
+        path: "mother-admin",
+        element: (
+          <PrivateRoute>
+            <AdminHome></AdminHome>
+          </PrivateRoute>
+        ),
       },
       {
-        path:"sub-admin",
-        element:<SubAdminHome></SubAdminHome>
-      },{
-        path:"master",
-        element:<Master></Master>
+        path: "sub-admin",
+        element: <SubAdminHome></SubAdminHome>,
       },
       {
-        path:"agent",
-        element:<Agent></Agent>
+        path: "master",
+        element: <Master></Master>,
       },
       {
-        path:"sub-agent",
-        element:<SubAgent></SubAgent>
+        path: "agent",
+        element: <Agent></Agent>,
       },
       {
-        path:"users",
-        element:<Users></Users>
-      }
-        ]
-  }
+        path: "sub-agent",
+        element: <SubAgent></SubAgent>,
+      },
+      {
+        path: "users",
+        element: <Users></Users>,
+      },
+    ],
+  },
 ]);
