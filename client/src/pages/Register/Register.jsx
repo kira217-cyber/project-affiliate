@@ -32,12 +32,10 @@ const Register = () => {
 
   const password = watch("password");
 
-  // URL থেকে রেফারেল কোড বসাও
   useEffect(() => {
     if (refCode) setValue("referral", refCode);
   }, [refCode, setValue]);
 
-  // Mutation: রেজিস্ট্রেশন
   const registerMutation = useMutation({
     mutationFn: (data) =>
       axios.post(`${import.meta.env.VITE_API_URL}/api/register`, data),
@@ -45,24 +43,22 @@ const Register = () => {
       toast.success("Registration successful!");
       const userData = res.data.user;
 
-      // localStorage এ userId সেভ
       localStorage.setItem("userId", userData.id);
-
-      // AuthContext এ সেভ
       setUser(userData);
-      console.log(userData)
-
-      // Query ক্যাশে সেভ
       queryClient.setQueryData(["user"], userData);
 
-      navigate("/");
+      if (userData.isActive) {
+        navigate("/affiliate/super");
+      } else {
+        toast.info("Your account is pending approval by your referrer.");
+        navigate("/login");
+      }
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || "Registration failed");
     },
   });
 
-  // Query: ইউজার লোড (AuthContext এর জন্য)
   const { refetch: refetchUser } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
@@ -71,11 +67,10 @@ const Register = () => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin?id=${userId}`);
       return res.data.user;
     },
-    enabled: false, // শুধু ম্যানুয়ালি কল
+    enabled: false,
     onSuccess: (data) => setUser(data),
   });
 
-  // রেজিস্ট্রেশনের পর ইউজার লোড
   useEffect(() => {
     if (localStorage.getItem("userId")) {
       refetchUser();

@@ -27,12 +27,8 @@ const Sidebar = () => {
   
 
  const downlineDropdown = [
-      { name: "Mother Admin", path: `/ma/mother-admin` },
-      { name: "Sub Admin", path: `/ma/sub-admin` },
-      { name: "Master", path: `/ma/master` },
-      { name: "Agent", path: `/ma/agent` },
-      { name: "Sub Agent", path: `/ma/sub-agent` },
-      { name: "User", path: `/ma/users` },
+      { name: "Super Affiliate", path: `/affiliate/super` },
+      { name: "Master Affiliate", path: `/affiliate/master` },
     ];
 
   // Full navItems with conditional Downline
@@ -131,8 +127,8 @@ const Sidebar = () => {
         },
       ],
     },
-    { name: "BetList", path: `/bet-list` },
-    { name: "Live Bet", path: `/live-bet` },
+    { name: "Pending Request", path: `/affiliate/master-pending-request` },
+    { name: "Profile", path: `/affiliate/profile` },
     { name: "Banking", path: `/banking` },
  
   ];

@@ -4,13 +4,11 @@ import Home from "../pages/Home/Home";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import AdminLayout from "../RootLayout/AdminLayout";
-import AdminHome from "../AdminPages/AdminHome/AdminHome";
-import SubAdminHome from "../AdminPages/SubAdminHome/SubAdminHome";
-import Master from "../AdminPages/Master/Master";
-import Agent from "../AdminPages/Agent/Agent";
-import SubAgent from "../AdminPages/SubAgent/SubAgent";
-import Users from "../AdminPages/Users/Users";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
+import SuperAffiliate from "../AdminPages/SuperAffiliate/SuperAffiliate";
+import MasterAffiliate from "../AdminPages/MasterAffiliate/MasterAffiliate";
+import MasterPendingRequest from "../AdminPages/MasterPendingRequest/MasterPendingRequest";
+import Profile from "../AdminPages/Profile/Profile";
 
 export const routes = createBrowserRouter([
   {
@@ -32,36 +30,40 @@ export const routes = createBrowserRouter([
     ],
   },
   {
-    path: "ma",
+    path: "affiliate",
     element: <AdminLayout></AdminLayout>,
     children: [
       {
-        path: "mother-admin",
+        path: "super",
         element: (
           <PrivateRoute>
-            <AdminHome></AdminHome>
+            <SuperAffiliate></SuperAffiliate>
           </PrivateRoute>
         ),
       },
       {
-        path: "sub-admin",
-        element: <SubAdminHome></SubAdminHome>,
-      },
-      {
         path: "master",
-        element: <Master></Master>,
+        element: (
+          <PrivateRoute>
+            <MasterAffiliate></MasterAffiliate>
+          </PrivateRoute>
+        ),
       },
       {
-        path: "agent",
-        element: <Agent></Agent>,
+        path: "master-pending-request",
+        element: (
+          <PrivateRoute>
+            <MasterPendingRequest></MasterPendingRequest>
+          </PrivateRoute>
+        ),
       },
       {
-        path: "sub-agent",
-        element: <SubAgent></SubAgent>,
-      },
-      {
-        path: "users",
-        element: <Users></Users>,
+        path: "profile",
+        element: (
+          <PrivateRoute>
+            <Profile></Profile>
+          </PrivateRoute>
+        ),
       },
     ],
   },

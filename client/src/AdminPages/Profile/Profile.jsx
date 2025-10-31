@@ -1,11 +1,11 @@
 import React from 'react';
 
-const Master = () => {
+const Profile = () => {
     return (
         <div>
-            Master
+            Profile
         </div>
     );
 };
 
-export default Master;
+export default Profile;
