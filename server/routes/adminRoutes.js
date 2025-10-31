@@ -9,6 +9,7 @@ router.post("/register", async (req, res) => {
   const { username, email, whatsapp, password, referral } = req.body;
 
   try {
+    // ইউজার আগে থেকে আছে কিনা?
     const exists = await Admin.findOne({ $or: [{ email }, { username }] });
     if (exists) return res.status(400).json({ message: "User already exists" });
 
@@ -29,12 +30,15 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       role: referral ? "normal-affiliate" : "super-affiliate",
       referredBy,
+      isActive: referral ? false : true, // রেফারেল হলে পেন্ডিং
     });
 
     const savedUser = await user.save();
 
+    // রেফারারের pendingRequests এ নতুন ইউজার যোগ করো
     if (referredBy) {
       await Admin.findByIdAndUpdate(referredBy, {
+        $push: { pendingRequests: savedUser._id },
         $push: { createdUsers: savedUser._id },
       });
     }
@@ -46,33 +50,31 @@ router.post("/register", async (req, res) => {
         username: savedUser.username,
         email: savedUser.email,
         role: savedUser.role,
+        isActive: savedUser.isActive,
         referralCode: savedUser.referralCode,
-        referralLink: `${process.env.VITE_API_URL}/register?ref=${savedUser.referralCode}`,
       },
     });
   } catch (err) {
+    console.error("Register error:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// POST /Login
+// POST /login
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // ১. ইউজার খুঁজো
     const user = await Admin.findOne({ username });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid username or password" });
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Account is pending approval" });
     }
 
-    // ২. পাসওয়ার্ড মিলছে কিনা চেক
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid username or password" });
-    }
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    // ৩. লগইন সফল → ইউজার ডাটা রিটার্ন (পাসওয়ার্ড বাদ)
     res.json({
       message: "Login successful",
       user: {
@@ -80,8 +82,8 @@ router.post("/login", async (req, res) => {
         username: user.username,
         email: user.email,
         role: user.role,
+        isActive: user.isActive,
         referralCode: user.referralCode,
-        referralLink: `${process.env.VITE_API_URL}/register?ref=${user.referralCode}`,
       },
     });
   } catch (err) {
@@ -89,27 +91,78 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// GET /me — লগইন ইউজার (localStorage থেকে userId নেয়া)
+// routes/admin.js
 router.get("/admin", async (req, res) => {
   try {
-    // পরিবর্তে: ফ্রন্টএন্ড থেকে query param দিয়ে পাঠাবে
     const id = req.query.id;
     if (!id) return res.status(401).json({ message: "No user ID" });
 
-    const user = await Admin.findById(id).select("-password");
+    const user = await Admin.findById(id)
+      .select("-password")
+      .populate({
+        path: "pendingRequests",
+        select: "username email whatsapp isActive commission depositCommission gameCommission",
+      })
+      .populate({
+        path: "createdUsers",
+        select: "username email whatsapp isActive commission depositCommission gameCommission",
+      });
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        referralCode: user.referralCode,
-        referralLink: `${process.env.VITE_API_URL}/register?ref=${user.referralCode}`,
-        createdUsers: user.createdUsers,
+    res.json({ user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// routes/admin.js → PATCH /approve-user/:id
+router.patch("/approve-user/:id", async (req, res) => {
+  const { id } = req.params;
+  const { commission = 0, depositCommission = 0, gameCommission = 0 } = req.body;
+
+  try {
+    const user = await Admin.findByIdAndUpdate(
+      id,
+      {
+        isActive: true,
+        commission: Number(commission),
+        depositCommission: Number(depositCommission),
+        gameCommission: Number(gameCommission),
       },
-    });
+      { new: true }
+    ).select("username email whatsapp isActive commission depositCommission gameCommission");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // pendingRequests থেকে রিমুভ + createdUsers এ যোগ
+    if (user.referredBy) {
+      await Admin.findByIdAndUpdate(user.referredBy, {
+        $pull: { pendingRequests: id },
+      });
+    }
+
+    res.json({ message: "User updated & activated", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PATCH /deactivate-user/:id
+router.patch("/deactivate-user/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await Admin.findByIdAndUpdate(
+      id,
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ message: "User deactivated", user });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
