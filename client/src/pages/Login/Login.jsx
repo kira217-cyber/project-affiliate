@@ -35,18 +35,18 @@ const Login = () => {
     mutationFn: (data) =>
       axios.post(`${import.meta.env.VITE_API_URL}/api/login`, data),
     onSuccess: (res) => {
-      toast.success("লগইন সফল!");
+      toast.success("Login Successfully");
       const userData = res.data.user;
 
       localStorage.setItem("userId", userData.id);
       setUser(userData);
 
-      navigate("/affiliate/master");
+      navigate("/affiliate/dashboard");
     },
     onError: (err) => {
-      const msg = err.response?.data?.message || "লগইন ব্যর্থ";
+      const msg = err.response?.data?.message || "Login Failed";
       if (msg.includes("pending")) {
-        toast.warn("Your account is pending approval by your referrer.");
+        toast.warn("Your account is not approval by your referrer.");
       } else {
         toast.error(msg);
       }
@@ -56,7 +56,7 @@ const Login = () => {
 
   const onSubmit = (data) => {
     if (data.captcha !== captchaCode) {
-      toast.error("ক্যাপচা মেলেনি!");
+      toast.error("Captcha Not Match");
       refreshCaptcha();
       return;
     }

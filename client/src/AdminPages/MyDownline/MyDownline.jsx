@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { toast } from "react-toastify";
 
-const MasterAffiliate = () => {
+const MyDownline = () => {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -52,7 +52,7 @@ const MasterAffiliate = () => {
   };
 
   const handleDeactivate = (userId) => {
-    if (window.confirm("এই ইউজারকে ডিঅ্যাক্টিভ করবেন?")) {
+    if (window.confirm("Deactivate this user?")) {
       deactivateMutation.mutate(userId);
     }
   };
@@ -87,22 +87,22 @@ const MasterAffiliate = () => {
         className="max-w-6xl mx-auto"
       >
         <h1 className="text-4xl font-bold text-white text-center mb-10">
-          আমার রেফারেল ইউজার
+          My Referral Users
         </h1>
 
         {allReferredUsers.length === 0 ? (
-          <p className="text-center text-gray-300 text-lg">কোনো রেফারেল ইউজার নেই</p>
+          <p className="text-center text-gray-300 text-lg">No Referral Users</p>
         ) : (
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-gray-200">
                 <thead>
                   <tr className="border-b border-white/20">
-                    <th className="py-3 px-4">ইউজারনেম</th>
-                    <th className="py-3 px-4">ইমেইল</th>
-                    <th className="py-3 px-4">হোয়াটসঅ্যাপ</th>
-                    <th className="py-3 px-4 text-center">স্ট্যাটাস</th>
-                    <th className="py-3 px-4 text-center">টগল</th>
+                    <th className="py-3 px-4">User Name</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Whatsapp</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4 text-center">Active/Deactive</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -120,29 +120,29 @@ const MasterAffiliate = () => {
                         <td className="py-4 px-4">{user.whatsapp}</td>
                         <td className="py-4 px-4 text-center">
                           <span
-                            className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                            className={`inline-block cursor-pointer px-3 py-1 rounded-full text-xs font-semibold ${
                               isActive
-                                ? "bg-green-500/20 text-green-300"
-                                : "bg-red-500/20 text-red-300"
+                                ? "bg-green-500/20 cursor-pointer text-green-300"
+                                : "bg-red-500/20 cursor-pointer text-red-300"
                             }`}
                           >
-                            {isActive ? "অ্যাক্টিভ" : "পেন্ডিং"}
+                            {isActive ? "Active" : "Deactive"}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
                           {isActive ? (
                             <button
                               onClick={() => handleDeactivate(user._id)}
-                              className="text-red-400 hover:text-red-300 transition transform hover:scale-110"
-                              title="ডিঅ্যাক্টিভ করুন"
+                              className="text-red-400 cursor-pointer hover:text-red-300 transition transform hover:scale-110"
+                              title="Deactivate"
                             >
                               <FaToggleOn size={28} />
                             </button>
                           ) : (
                             <button
                               onClick={() => handleActivate(user)}
-                              className="text-gray-500 hover:text-green-400 transition transform hover:scale-110"
-                              title="অ্যাক্টিভ করুন"
+                              className="text-gray-500 cursor-pointer hover:text-green-400 transition transform hover:scale-110"
+                              title="Activate"
                             >
                               <FaToggleOff size={28} />
                             </button>
@@ -167,11 +167,11 @@ const MasterAffiliate = () => {
             className="bg-gray-900 p-8 rounded-2xl max-w-md w-full border border-gray-700"
           >
             <h3 className="text-2xl font-bold text-white mb-6">
-              কমিশন সেট করুন: {selectedUser.username}
+              Set Commissions: {selectedUser.username}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-300 mb-1">কমিশন (%)</label>
+                <label className="block text-sm text-gray-300 mb-1">Commission (%)</label>
                 <input
                   type="number"
                   name="commission"
@@ -182,7 +182,7 @@ const MasterAffiliate = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-300 mb-1">ডিপোজিট কমিশন (%)</label>
+                <label className="block text-sm text-gray-300 mb-1">Deposit Commission (%)</label>
                 <input
                   type="number"
                   name="depositCommission"
@@ -193,7 +193,7 @@ const MasterAffiliate = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-300 mb-1">গেম কমিশন (%)</label>
+                <label className="block text-sm text-gray-300 mb-1">Game Commission (%)</label>
                 <input
                   type="number"
                   name="gameCommission"
@@ -208,9 +208,9 @@ const MasterAffiliate = () => {
                 <button
                   type="submit"
                   disabled={approveMutation.isPending}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-semibold disabled:opacity-50"
+                  className="flex-1 bg-green-500 cursor-pointer hover:bg-green-600 text-white py-2 rounded-lg font-semibold disabled:opacity-50"
                 >
-                  {approveMutation.isPending ? "আপডেট হচ্ছে..." : "আপডেট ও অ্যাক্টিভ করুন"}
+                  {approveMutation.isPending ? "Updating..." : "Update and Active"}
                 </button>
                 <button
                   type="button"
@@ -218,9 +218,9 @@ const MasterAffiliate = () => {
                     setModalOpen(false);
                     setSelectedUser(null);
                   }}
-                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg font-semibold"
+                  className="flex-1 bg-gray-700 cursor-pointer hover:bg-gray-600 text-white py-2 rounded-lg font-semibold"
                 >
-                  বাতিল
+                  Cancel
                 </button>
               </div>
             </form>
@@ -231,4 +231,4 @@ const MasterAffiliate = () => {
   );
 };
 
-export default MasterAffiliate;
+export default MyDownline;

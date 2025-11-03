@@ -5,10 +5,15 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import AdminLayout from "../RootLayout/AdminLayout";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
-import SuperAffiliate from "../AdminPages/SuperAffiliate/SuperAffiliate";
-import MasterAffiliate from "../AdminPages/MasterAffiliate/MasterAffiliate";
-import MasterPendingRequest from "../AdminPages/MasterPendingRequest/MasterPendingRequest";
 import Profile from "../AdminPages/Profile/Profile";
+import MyDownline from "../AdminPages/MyDownline/MyDownline";
+import Dashboard from "../AdminPages/Dashboard/Dashboard";
+import MyAccount from "../AdminPages/MyAccount/MyAccount";
+import MyReport from "../AdminPages/MyReport/MyReport";
+import Management from "../AdminPages/Management/Management";
+import MyReferLink from "../AdminPages/MyReferLink/MyReferLink";
+import Withdraw from "../AdminPages/Withdraw/Withdraw";
+import Banking from "../AdminPages/Banking/Banking";
 
 export const routes = createBrowserRouter([
   {
@@ -34,26 +39,58 @@ export const routes = createBrowserRouter([
     element: <AdminLayout></AdminLayout>,
     children: [
       {
-        path: "super",
+        path: "dashboard",
         element: (
           <PrivateRoute>
-            <SuperAffiliate></SuperAffiliate>
+            <Dashboard></Dashboard>
           </PrivateRoute>
         ),
       },
       {
-        path: "master",
+        path: "my-downline",
         element: (
           <PrivateRoute>
-            <MasterAffiliate></MasterAffiliate>
+            <MyDownline></MyDownline>
           </PrivateRoute>
         ),
       },
       {
-        path: "master-pending-request",
+        path: "my-account",
         element: (
           <PrivateRoute>
-            <MasterPendingRequest></MasterPendingRequest>
+            <MyAccount></MyAccount>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "my-report",
+        element: (
+          <PrivateRoute>
+            <MyReport></MyReport>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "management",
+        element: (
+          <PrivateRoute>
+            <Management></Management>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "my-refer-link",
+        element: (
+          <PrivateRoute>
+            <MyReferLink></MyReferLink>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "withdraw",
+        element: (
+          <PrivateRoute>
+            <Withdraw></Withdraw>
           </PrivateRoute>
         ),
       },
@@ -62,6 +99,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Profile></Profile>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "banking",
+        element: (
+          <PrivateRoute>
+            <Banking></Banking>
           </PrivateRoute>
         ),
       },

@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
       const userId = localStorage.getItem("userId");
       if (!userId) throw new Error("No user");
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin?id=${userId}`);
+      console.log(res.data.user)
       return res.data.user;
     },
     enabled: false,
@@ -41,6 +42,8 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem("userID");
   };
+  
+ 
 
   if (loading) return <p className="text-white text-center mt-10">Loading...</p>;
 
