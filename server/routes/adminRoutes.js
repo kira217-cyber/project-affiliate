@@ -28,7 +28,7 @@ router.post("/register", async (req, res) => {
       email,
       whatsapp,
       password: hashedPassword,
-      role: referral ? "normal-affiliate" : "super-affiliate",
+      role: referral ? "master-affiliate" : "super-affiliate",
       referredBy,
       isActive: referral ? false : true, // রেফারেল হলে পেন্ডিং
     });
@@ -52,6 +52,7 @@ router.post("/register", async (req, res) => {
         role: savedUser.role,
         isActive: savedUser.isActive,
         referralCode: savedUser.referralCode,
+        referralLink: `${process.env.VITE_API_URL}/register?ref=${savedUser.referralCode}`,
       },
     });
   } catch (err) {
@@ -84,6 +85,7 @@ router.post("/login", async (req, res) => {
         role: user.role,
         isActive: user.isActive,
         referralCode: user.referralCode,
+        referralLink: `${process.env.VITE_API_URL}/register?ref=${user.referralCode}`,
       },
     });
   } catch (err) {
@@ -164,6 +166,50 @@ router.patch("/deactivate-user/:id", async (req, res) => {
 
     res.json({ message: "User deactivated", user });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.put("/profile", async (req, res) => {
+  try {
+    const { userId, firstName, lastName, username, email, whatsapp, password } =
+      req.body;
+
+    // userId ছাড়া হলে এরর
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
+    const user = await Admin.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // আপডেট ফিল্ড
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.username = username || user.username;
+    user.email = email || user.email;
+    user.whatsapp = whatsapp || user.whatsapp;
+
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    // রেসপন্স
+    res.json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      email: user.email,
+      whatsapp: user.whatsapp,
+      referralCode: user.referralCode,
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
