@@ -1,17 +1,16 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../../Context/AuthContext";
-import SuperWithdraw from "../../AdminComponents/WithdrawSystem/SuperWithdraw";
-import MasterWithdraw from "../../AdminComponents/WithdrawSystem/MasterWithdraw";
+import SuperTransactionHistory from "../../AdminComponents/TransactionHistory/SuperTransactionHistory";
+import MasterTransactionHistory from "../../AdminComponents/TransactionHistory/MasterTransactionHistory";
 
-
-const Withdraw = () => {
+const TransactionHistory = () => {
   const { user } = useContext(AuthContext);
   return (
     <div>
       {user?.role === "super-affiliate" ? (
-        <SuperWithdraw></SuperWithdraw>
+        <SuperTransactionHistory></SuperTransactionHistory>
       ) : user?.role === "master-affiliate" ? (
-        <MasterWithdraw></MasterWithdraw>
+        <MasterTransactionHistory></MasterTransactionHistory>
       ) : (
         <p className="text-center text-red-500 mt-10">
           Unauthorized access or invalid role.
@@ -21,4 +20,4 @@ const Withdraw = () => {
   );
 };
 
-export default Withdraw;
+export default TransactionHistory;

@@ -14,6 +14,8 @@ import Management from "../AdminPages/Management/Management";
 import MyReferLink from "../AdminPages/MyReferLink/MyReferLink";
 import Withdraw from "../AdminPages/Withdraw/Withdraw";
 import Banking from "../AdminPages/Banking/Banking";
+import TransactionHistory from "../AdminPages/TransactionHistory/TransactionHistory";
+import WithdrawRequest from "../AdminPages/WithdrawRequest/WithdrawRequest";
 
 export const routes = createBrowserRouter([
   {
@@ -103,10 +105,26 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "transaction-history",
+        element: (
+          <PrivateRoute>
+            <TransactionHistory></TransactionHistory>
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "banking",
         element: (
           <PrivateRoute>
             <Banking></Banking>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "withdraw-request",
+        element: (
+          <PrivateRoute>
+            <WithdrawRequest></WithdrawRequest>
           </PrivateRoute>
         ),
       },

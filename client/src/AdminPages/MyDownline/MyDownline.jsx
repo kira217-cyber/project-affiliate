@@ -75,7 +75,6 @@ const MyDownline = () => {
 
   // শুধু রেফারেল ইউজার (pending + created)
   const allReferredUsers = [
-    ...(data?.pendingRequests || []),
     ...(data?.createdUsers || []),
   ].filter(Boolean);
 

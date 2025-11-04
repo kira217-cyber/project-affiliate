@@ -30,6 +30,10 @@ const Sidebar = () => {
     { name: "My Refer Link", path: `/affiliate/my-refer-link` },
     { name: "Withdraw", path: `/affiliate/withdraw` },
     { name: "Profile", path: `/affiliate/profile` },
+    { name: "Transaction History", path: `/affiliate/transaction-history` },
+    ...(user?.role === "super-affiliate"
+      ? [{ name: "Withdraw Request", path: `/affiliate/withdraw-request` }]
+      : []),
     ...(user?.role === "super-affiliate"
       ? [{ name: "Banking", path: `/affiliate/banking` }]
       : []),
