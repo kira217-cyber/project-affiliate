@@ -47,6 +47,30 @@ router.put("/method/:methodId", async (req, res) => {
   res.json(method);
 });
 
+
+// DELETE /api/withdraw/method/:methodId
+router.delete("/method/:methodId", async (req, res) => {
+  try {
+    const methodId = req.params.methodId;
+
+    const method = await WithdrawalMethod.findById(methodId);
+    if (!method) {
+      return res.status(404).json({ msg: "মেথড পাওয়া যায়নি" });
+    }
+
+    // অপশনাল: চেক করুন যে এই মেথড সেই অ্যাডমিনের কিনা
+    // if (method.adminId.toString() !== req.body.adminId) {
+    //   return res.status(403).json({ msg: "অনুমতি নেই" });
+    // }
+
+    await WithdrawalMethod.findByIdAndDelete(methodId);
+    res.json({ msg: "মেথড ডিলিট হয়েছে" });
+  } catch (err) {
+    console.error("Delete Method Error:", err);
+    res.status(500).json({ msg: "সার্ভারে সমস্যা" });
+  }
+});
+
 // ক্রিয়েট রিকোয়েস্ট (মাস্টার ওনলি)
 router.post("/request", async (req, res) => {
   const { requesterId, methodId, paymentType, accountNumber, amount } =
