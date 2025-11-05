@@ -4,7 +4,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Edit2, X, Save, Loader2, 
-  Smartphone, Building2, User, Store // নতুন আইকন
+  Smartphone, Building2, User, Store, Trash2 // Delete আইকন
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -13,8 +13,11 @@ const SuperWithdraw = () => {
   const [form, setForm] = useState({ methodName: '', paymentTypes: '', minAmount: '', maxAmount: '' });
   const [editId, setEditId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false); // নতুন
+  const [deleteId, setDeleteId] = useState(null); // নতুন
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false); // নতুন
   const adminId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -57,10 +60,10 @@ const SuperWithdraw = () => {
       }
 
       fetchMethods();
-      toast.success("Withdraw Method Added Successfully")
+      toast.success(editId ? "মেথড আপডেট হয়েছে" : "নতুন মেথড যোগ হয়েছে");
       closeModal();
     } catch (err) {
-      console.error(err);
+      toast.error("সেভ করতে সমস্যা হয়েছে");
     } finally {
       setSaving(false);
     }
@@ -83,7 +86,31 @@ const SuperWithdraw = () => {
     setForm({ methodName: '', paymentTypes: '', minAmount: '', maxAmount: '' });
   };
 
-  // আইকন সিলেক্ট করার ফাংশন
+  // Delete ফাংশন
+  const openDelete = (id) => {
+    setDeleteId(id);
+    setDeleteModal(true);
+  };
+
+  const closeDelete = () => {
+    setDeleteModal(false);
+    setDeleteId(null);
+  };
+
+  const confirmDelete = async () => {
+    setDeleting(true);
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/withdraw/method/${deleteId}`);
+      fetchMethods();
+      toast.success("মেথড ডিলিট হয়েছে");
+      closeDelete();
+    } catch (err) {
+      toast.error("ডিলিট করতে সমস্যা হয়েছে");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const getMethodIcon = (name) => {
     const lower = name.toLowerCase();
     if (lower.includes('bkash')) return <Smartphone className="w-6 h-6" />;
@@ -93,7 +120,6 @@ const SuperWithdraw = () => {
     return <Smartphone className="w-6 h-6" />;
   };
 
-  // টাইপ চিপের আইকন + কালার
   const getTypeChip = (type) => {
     const lower = type.toLowerCase();
     if (lower === 'personal') return { icon: <User size={14} />, color: 'bg-blue-100 text-blue-700' };
@@ -174,12 +200,20 @@ const SuperWithdraw = () => {
                       <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white p-3 rounded-xl flex items-center justify-center">
                         {getMethodIcon(method.methodName)}
                       </div>
-                      <button
-                        onClick={() => openEdit(method)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/20 backdrop-blur p-2 rounded-lg hover:bg-white/30"
-                      >
-                        <Edit2 size={18} className="text-white" />
-                      </button>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => openEdit(method)}
+                          className="bg-white/20 backdrop-blur p-2 rounded-lg hover:bg-white/30"
+                        >
+                          <Edit2 size={18} className="text-white" />
+                        </button>
+                        <button
+                          onClick={() => openDelete(method._id)}
+                          className="bg-red-500/20 backdrop-blur p-2 rounded-lg hover:bg-red-500/30"
+                        >
+                          <Trash2 size={18} className="text-red-300" />
+                        </button>
+                      </div>
                     </div>
 
                     <h3 className="text-2xl font-bold text-white mb-3">{method.methodName}</h3>
@@ -194,7 +228,6 @@ const SuperWithdraw = () => {
                         <span className="font-semibold">৳{method.maxAmount}</span>
                       </p>
 
-                      {/* পেমেন্ট টাইপ চিপ */}
                       <div className="flex flex-wrap gap-2 mt-3">
                         {method.paymentTypes.map((type, i) => {
                           const chip = getTypeChip(type);
@@ -235,7 +268,7 @@ const SuperWithdraw = () => {
         </div>
       </motion.div>
 
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       <AnimatePresence>
         {modalOpen && (
           <motion.div
@@ -353,6 +386,60 @@ const SuperWithdraw = () => {
                   )}
                 </motion.button>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)' }}
+            onClick={closeDelete}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <div className="bg-red-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Trash2 size={32} className="text-red-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">ডিলিট করবেন?</h3>
+                <p className="text-gray-600">এই মেথড স্থায়ীভাবে মুছে যাবে।</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={closeDelete}
+                  className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  বাতিল
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                  className="flex-1 py-3 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-70 flex items-center justify-center gap-2"
+                >
+                  {deleting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      ডিলিট হচ্ছে...
+                    </>
+                  ) : (
+                    'হ্যাঁ, ডিলিট করুন'
+                  )}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
