@@ -103,11 +103,11 @@ router.get("/admin", async (req, res) => {
       .select("-password")
       .populate({
         path: "pendingRequests",
-        select: "username email whatsapp isActive commission depositCommission gameCommission",
+        select: "username email whatsapp balance password isActive commission depositCommission gameCommission",
       })
       .populate({
         path: "createdUsers",
-        select: "username email whatsapp isActive commission depositCommission gameCommission",
+        select: "username email whatsapp balance password isActive commission depositCommission gameCommission",
       });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -210,6 +210,35 @@ router.put("/profile", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/update-user-credentials/:id
+router.patch("/update-master-affiliate-credentials/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, password } = req.body;
+
+    const user = await Admin.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // ইউজারনেম আপডেট
+    if (username && username !== user.username) {
+      const existing = await Admin.findOne({ username });
+      if (existing) return res.status(400).json({ message: "Username already taken" });
+      user.username = username;
+    }
+
+    // পাসওয়ার্ড আপডেট (যদি দেওয়া থাকে)
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+    res.json({ message: "User updated successfully", user });
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
