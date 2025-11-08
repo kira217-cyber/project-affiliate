@@ -29,25 +29,23 @@ const SuperTransactionHistory = () => {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/withdraw/history/${adminId}`
       );
-
       // শুধু approve + refund (স্কিমায় আছে)
       const filtered = res.data.filter(
         (tx) =>
           (tx.type === "approve" || tx.type === "refund") &&
           tx.adminId.toString() === adminId
       );
-
       // সর্বশেষ আগে (updatedAt > createdAt)
       const sorted = filtered.sort(
         (a, b) =>
           new Date(b.updatedAt || b.createdAt) -
           new Date(a.updatedAt || a.createdAt)
       );
-
       setHistory(sorted);
+      console.log(sorted);
       setError("");
     } catch (err) {
-      setError("ট্রানজেকশন লোড করতে সমস্যা হয়েছে");
+      setError("There was a Problem Loading the Transaction.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -60,20 +58,20 @@ const SuperTransactionHistory = () => {
         color: "text-green-600",
         bg: "bg-green-100",
         icon: <ArrowUpRight size={16} />,
-        text: "অ্যাপ্রুভ",
+        text: "Approve",
       };
     if (type === "refund")
       return {
         color: "text-red-600",
         bg: "bg-red-100",
         icon: <XCircle size={16} />,
-        text: "রিজেক্ট",
+        text: "Reject",
       };
     return {
       color: "text-gray-600",
       bg: "bg-gray-100",
       icon: <AlertCircle size={16} />,
-      text: "অজানা",
+      text: "Unknown",
     };
   };
 
@@ -109,7 +107,7 @@ const SuperTransactionHistory = () => {
   if (!adminId) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-cyan-500 to-blue-600 text-white text-xl">
-        লগইন করুন
+        Login First
       </div>
     );
   }
@@ -120,7 +118,7 @@ const SuperTransactionHistory = () => {
       animate={{ opacity: 1 }}
       className="min-h-screen p-4 md:p-8"
       style={{
-        background: "linear-gradient(135deg, #43cea2 0%, #185a9d 100%)",
+        background: "#0f172a", // Solid hard background color (deep navy)
         fontFamily: '"Poppins", sans-serif',
       }}
     >
@@ -132,10 +130,10 @@ const SuperTransactionHistory = () => {
           className="text-center mb-10"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
-            সুপার ট্রানজেকশন হিস্টোরি
+            Super Transaction History
           </h1>
           <p className="text-white/80 text-lg">
-            আপনি যে রিকোয়েস্টগুলো অ্যাপ্রুভ বা রিজেক্ট করেছেন
+            Requests you have Approved or Rejected
           </p>
         </motion.div>
 
@@ -165,13 +163,13 @@ const SuperTransactionHistory = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-white/20 text-white text-left text-sm font-semibold">
-                    <th className="px-4 py-4">টাইপ</th>
-                    <th className="px-4 py-4">অ্যামাউন্ট</th>
-                    <th className="px-4 py-4">মেথড</th>
-                    <th className="px-4 py-4">নম্বর</th>
-                    <th className="px-4 py-4">পেমেন্ট টাইপ</th>
-                    <th className="px-4 py-4">তারিখ</th>
-                    <th className="px-4 py-4">বিবরণ</th>
+                    <th className="px-4 py-4">Type</th>
+                    <th className="px-4 py-4">Amount</th>
+                    <th className="px-4 py-4">Method</th>
+                    <th className="px-4 py-4">Number</th>
+                    <th className="px-4 py-4">Payment Type</th>
+                    <th className="px-4 py-4">Date</th>
+                    <th className="px-4 py-4">Result</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -187,7 +185,7 @@ const SuperTransactionHistory = () => {
                             className="mx-auto mb-3 text-white/50"
                           />
                           <p>
-                            আপনি এখনো কোনো রিকোয়েস্ট অ্যাপ্রুভ/রিজেক্ট করেননি
+                            You have Not Approved/Rejected any Requests Yet.
                           </p>
                         </td>
                       </tr>

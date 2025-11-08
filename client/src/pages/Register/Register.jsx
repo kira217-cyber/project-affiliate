@@ -48,7 +48,7 @@ const Register = () => {
       queryClient.setQueryData(["user"], userData);
 
       if (userData.isActive) {
-        navigate("/affiliate/super");
+        navigate("/affiliate/dashboard");
       } else {
         toast.info("Your account is pending approval by your referrer.");
         navigate("/login");

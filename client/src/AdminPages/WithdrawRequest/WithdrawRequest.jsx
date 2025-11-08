@@ -95,7 +95,7 @@ const WithdrawRequest = () => {
     refetchInterval: 10000,
   });
 
-  // 3. APPROVE MUTATION (তাৎক্ষণিক টোস্ট)
+  // 3. APPROVE MUTATION (instant toast)
   const approveMutation = useMutation({
     mutationFn: approveRequest,
     onMutate: async ({ requestId }) => {
@@ -104,17 +104,17 @@ const WithdrawRequest = () => {
       });
       const previous = queryClient.getQueryData(["withdrawRequests", adminId]);
 
-      // তাৎক্ষণিক UI + Toast
+      // Instant UI + Toast
       queryClient.setQueryData(["withdrawRequests", adminId], (old = []) =>
         old.map((r) => (r._id === requestId ? { ...r, status: "approved" } : r))
       );
-      toast.success("অ্যাপ্রুভ সফল!", { autoClose: 1500 });
+      toast.success("Approve Successfully!", { autoClose: 1500 });
 
       return { previous };
     },
     onError: (err, _, context) => {
       queryClient.setQueryData(["withdrawRequests", adminId], context.previous);
-      toast.error(err.response?.data?.msg || "অ্যাপ্রুভ ব্যর্থ", {
+      toast.error(err.response?.data?.msg || "Approve Failed!", {
         autoClose: 3000,
       });
     },
@@ -130,7 +130,7 @@ const WithdrawRequest = () => {
     },
   });
 
-  // 4. REJECT MUTATION (তাৎক্ষণিক টোস্ট)
+  // 4. REJECT MUTATION (instant toast)
   const rejectMutation = useMutation({
     mutationFn: rejectRequest,
     onMutate: async ({ requestId }) => {
@@ -139,11 +139,11 @@ const WithdrawRequest = () => {
       });
       const previous = queryClient.getQueryData(["withdrawRequests", adminId]);
 
-      // তাৎক্ষণিক UI + Toast
+      // Instant UI + Toast
       queryClient.setQueryData(["withdrawRequests", adminId], (old = []) =>
         old.map((r) => (r._id === requestId ? { ...r, status: "rejected" } : r))
       );
-      toast.error("রিজেক্ট করা হয়েছে। টাকা ফেরত দেওয়া হয়েছে।", {
+      toast.error("Rejected. Money Refunded.", {
         autoClose: 1500,
       });
 
@@ -151,7 +151,7 @@ const WithdrawRequest = () => {
     },
     onError: (err, _, context) => {
       queryClient.setQueryData(["withdrawRequests", adminId], context.previous);
-      toast.error(err.response?.data?.msg || "রিজেক্ট ব্যর্থ", {
+      toast.error(err.response?.data?.msg || "Reject Failed", {
         autoClose: 3000,
       });
     },
@@ -218,19 +218,19 @@ const WithdrawRequest = () => {
         return {
           icon: <Clock size={16} />,
           color: "bg-yellow-100 text-yellow-700",
-          text: "পেন্ডিং",
+          text: "Pending",
         };
       case "approved":
         return {
           icon: <CheckCircle size={16} />,
           color: "bg-green-100 text-green-700",
-          text: "অ্যাপ্রুভড",
+          text: "Approved",
         };
       case "rejected":
         return {
           icon: <XCircle size={16} />,
           color: "bg-red-100 text-red-700",
-          text: "রিজেক্টেড",
+          text: "Rejected",
         };
       default:
         return {
@@ -244,7 +244,7 @@ const WithdrawRequest = () => {
   if (!adminId) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white text-xl">
-        লগইন করুন
+        Login First
       </div>
     );
   }
@@ -256,7 +256,7 @@ const WithdrawRequest = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen p-6"
         style={{
-          background: "linear-gradient(135deg, #f2994a 0%, #f2c94c 100%)",
+          background: "#0f172a", // Solid hard background color
           fontFamily: '"Poppins", sans-serif',
         }}
       >
@@ -268,9 +268,9 @@ const WithdrawRequest = () => {
             className="text-center mb-10"
           >
             <h1 className="text-5xl font-bold text-white mb-2 tracking-tight">
-              উইথড্র রিকোয়েস্ট
+              Withdraw Request
             </h1>
-            <p className="text-white/80 text-lg">অ্যাপ্রুভ বা রিজেক্ট করুন</p>
+            <p className="text-white/80 text-lg">Approve or Reject</p>
           </motion.div>
 
           {isError && (
@@ -327,10 +327,10 @@ const WithdrawRequest = () => {
                           </div>
                           <div>
                             <h3 className="text-xl font-bold text-white">
-                              {req.methodId?.methodName || "অজানা"}
+                              {req.methodId?.methodName || "Unknown"}
                             </h3>
                             <p className="text-xs text-white/70">
-                              {req.requesterId?.username || "অজানা"}
+                              {req.requesterId?.username || "Unknown"}
                             </p>
                           </div>
                         </div>
@@ -344,17 +344,17 @@ const WithdrawRequest = () => {
 
                       <div className="space-y-3 text-white/90">
                         <div className="flex justify-between">
-                          <span>অ্যামাউন্ট:</span>
+                          <span>Amount:</span>
                           <span className="font-bold">৳{req.amount}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>অ্যাকাউন্ট:</span>
+                          <span>Account:</span>
                           <span className="font-medium text-sm">
                             {req.accountNumber}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>টাইপ:</span>
+                          <span>Type:</span>
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
                               getTypeChip(req.paymentType).color
@@ -374,14 +374,14 @@ const WithdrawRequest = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleAction(req._id, "approve")}
                             disabled={isApproving || isRejecting}
-                            className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 transition-colors"
+                            className="flex-1 cursor-pointer bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 transition-colors"
                           >
                             {isApproving ? (
                               <Loader2 className="animate-spin" size={16} />
                             ) : (
                               <CheckCircle size={16} />
                             )}
-                            অ্যাপ্রুভ
+                            Approve
                           </motion.button>
 
                           <motion.button
@@ -389,14 +389,14 @@ const WithdrawRequest = () => {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleAction(req._id, "reject")}
                             disabled={isApproving || isRejecting}
-                            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 transition-colors"
+                            className="flex-1 cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-70 transition-colors"
                           >
                             {isRejecting ? (
                               <Loader2 className="animate-spin" size={16} />
                             ) : (
                               <XCircle size={16} />
                             )}
-                            রিজেক্ট
+                            Reject
                           </motion.button>
                         </div>
                       )}
@@ -404,7 +404,7 @@ const WithdrawRequest = () => {
                       {/* Auto-hide message */}
                       {isProcessed && (
                         <p className="mt-3 text-xs text-white/70 text-center animate-pulse">
-                          এই কার্ড ১ মিনিট পর অদৃশ্য হবে
+                          This Card will Disappear After 1 Minute.
                         </p>
                       )}
                     </div>
@@ -425,9 +425,9 @@ const WithdrawRequest = () => {
                 <div className="bg-white/20 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                   <AlertCircle size={48} className="text-white/60" />
                 </div>
-                <p className="text-white/80 text-lg">কোনো রিকোয়েস্ট নেই</p>
+                <p className="text-white/80 text-lg">No Requests.</p>
                 <p className="text-white/60 text-sm mt-2">
-                  নতুন রিকোয়েস্ট আসলে এখানে দেখাবে
+                  New Requests will Actually Show up Here.
                 </p>
               </div>
             </motion.div>

@@ -41,7 +41,7 @@ const MasterTransactionHistory = () => {
       setHistory(sorted);
       setError("");
     } catch (err) {
-      setError("ট্রানজেকশন লোড করতে সমস্যা হয়েছে");
+      setError("There was a Problem Loading the Transaction.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -55,35 +55,35 @@ const MasterTransactionHistory = () => {
           color: "text-green-600",
           bg: "bg-green-100",
           icon: <CheckCircle size={16} />,
-          text: "অ্যাপ্রুভ",
+          text: "Approve",
         };
       case "refund":
         return {
           color: "text-red-600",
           bg: "bg-red-100",
           icon: <XCircle size={16} />,
-          text: "রিজেক্ট",
+          text: "Reject",
         };
       case "withdraw_request":
         return {
           color: "text-blue-600",
           bg: "bg-blue-100",
           icon: <Clock size={16} />,
-          text: "রিকোয়েস্ট",
+          text: "Pending",
         };
       case "deposit":
         return {
           color: "text-emerald-600",
           bg: "bg-emerald-100",
           icon: <ArrowUpRight size={16} />,
-          text: "ডিপোজিট",
+          text: "Deposit",
         };
       default:
         return {
           color: "text-gray-600",
           bg: "bg-gray-100",
           icon: <AlertCircle size={16} />,
-          text: "অজানা",
+          text: "Unknown",
         };
     }
   };
@@ -110,7 +110,7 @@ const MasterTransactionHistory = () => {
   if (!adminId) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-red-500 to-pink-600 text-white text-xl">
-        লগইন করুন
+        First Login
       </div>
     );
   }
@@ -121,7 +121,7 @@ const MasterTransactionHistory = () => {
       animate={{ opacity: 1 }}
       className="min-h-screen p-4 md:p-8"
       style={{
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "#1e293b", // Solid hard background color (slate-800 equivalent)
         fontFamily: '"Poppins", sans-serif',
       }}
     >
@@ -133,10 +133,10 @@ const MasterTransactionHistory = () => {
           className="text-center mb-10"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
-            মাস্টার ট্রানজেকশন হিস্টোরি
+            Master Transaction History
           </h1>
           <p className="text-white/80 text-lg">
-            আপনার সকল উইথড্র রিকোয়েস্ট, অ্যাপ্রুভ ও রিজেক্ট
+            All your Withdrawal Requests, Approvals and Rejections
           </p>
         </motion.div>
 
@@ -166,13 +166,13 @@ const MasterTransactionHistory = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-white/20 text-white text-left text-sm font-semibold">
-                    <th className="px-4 py-4">টাইপ</th>
-                    <th className="px-4 py-4">অ্যামাউন্ট</th>
-                    <th className="px-4 py-4">মেথড</th>
-                    <th className="px-4 py-4">নম্বর</th>
-                    <th className="px-4 py-4">পেমেন্ট টাইপ</th>
-                    <th className="px-4 py-4">তারিখ</th>
-                    <th className="px-4 py-4">বিবরণ</th>
+                    <th className="px-4 py-4">Type</th>
+                    <th className="px-4 py-4">Amount</th>
+                    <th className="px-4 py-4">Method</th>
+                    <th className="px-4 py-4">Number</th>
+                    <th className="px-4 py-4">Payment Type</th>
+                    <th className="px-4 py-4">Date</th>
+                    <th className="px-4 py-4">Result</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -181,7 +181,7 @@ const MasterTransactionHistory = () => {
                       <tr>
                         <td colSpan="7" className="text-center py-12 text-white/70">
                           <AlertCircle size={48} className="mx-auto mb-3 text-white/50" />
-                          <p>কোনো ট্রানজেকশন নেই</p>
+                          <p>No Transaction History</p>
                         </td>
                       </tr>
                     ) : (

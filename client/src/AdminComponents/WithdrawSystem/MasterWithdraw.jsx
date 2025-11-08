@@ -67,7 +67,7 @@ const MasterWithdraw = () => {
       toast.success(
         <div className="flex items-center gap-2">
           <CheckCircle size={20} />
-          <span>উইথড্র রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!</span>
+          <span>Withdrawal Request Sent Successfully!</span>
         </div>,
         { icon: false }
       );
@@ -83,7 +83,8 @@ const MasterWithdraw = () => {
       }, 500);
     },
     onError: (err) => {
-      const msg = err.response?.data?.msg || "রিকোয়েস্ট পাঠাতে সমস্যা হয়েছে";
+      const msg =
+        err.response?.data?.msg || "There was a Problem Sending the Request.";
       setError(msg);
       toast.error(
         <div className="flex items-center gap-2">
@@ -110,7 +111,7 @@ const MasterWithdraw = () => {
       amount < selectedMethod.minAmount ||
       amount > selectedMethod.maxAmount
     ) {
-      const msg = `অ্যামাউন্ট ${selectedMethod.minAmount} - ${selectedMethod.maxAmount} এর মধ্যে হতে হবে`;
+      const msg = `Amount ${selectedMethod.minAmount} - ${selectedMethod.maxAmount} Must be in Between`;
       setError(msg);
       toast.warn(msg);
       return;
@@ -173,7 +174,7 @@ const MasterWithdraw = () => {
   if (!adminId) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white text-xl">
-        লগইন করুন
+        Login First
       </div>
     );
   }
@@ -186,7 +187,7 @@ const MasterWithdraw = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen p-6"
         style={{
-          background: "linear-gradient(135deg, #56ccf2 0%, #2f80ed 100%)",
+          background: "#0f172a", // Solid hard background color
           fontFamily: '"Poppins", sans-serif',
         }}
       >
@@ -199,17 +200,17 @@ const MasterWithdraw = () => {
             className="text-center mb-10"
           >
             <h1 className="text-5xl font-bold text-white mb-2 tracking-tight">
-              মাস্টার উইথড্র সিস্টেম
+              Master Withdrawal System
             </h1>
             <p className="text-white/80 text-lg">
-              আপনার উইথড্র রিকোয়েস্ট পাঠান
+              Send Your Withdrawal Request
             </p>
           </motion.div>
 
           {/* Fetch Error */}
           {fetchError && (
             <div className="text-center py-10 text-red-300">
-              মেথড লোড করতে সমস্যা হয়েছে
+              There was a Problem Loading the Method.
             </div>
           )}
 
@@ -252,13 +253,13 @@ const MasterWithdraw = () => {
 
                     <div className="space-y-2 text-white/90">
                       <p className="flex justify-between">
-                        <span>মিনিমাম:</span>
+                        <span>Minimum:</span>
                         <span className="font-semibold">
                           ৳{method.minAmount}
                         </span>
                       </p>
                       <p className="flex justify-between">
-                        <span>ম্যাক্সিমাম:</span>
+                        <span>Maximum:</span>
                         <span className="font-semibold">
                           ৳{method.maxAmount}
                         </span>
@@ -281,7 +282,7 @@ const MasterWithdraw = () => {
 
                     <div className="mt-4 pt-4 border-t border-white/20">
                       <p className="text-sm text-white/70 text-center">
-                        ক্লিক করে রিকোয়েস্ট করুন
+                        Click to Request.
                       </p>
                     </div>
                   </div>
@@ -302,10 +303,10 @@ const MasterWithdraw = () => {
                   <AlertCircle size={48} className="text-white/60" />
                 </div>
                 <p className="text-white/80 text-lg">
-                  কোনো উইথড্র মেথড পাওয়া যায়নি
+                  No Withdrawal Method Found.
                 </p>
                 <p className="text-white/60 text-sm mt-2">
-                  আপনার সুপার অ্যাফিলিয়েট মেথড যোগ করুন
+                  Add your Super Affiliate Method
                 </p>
               </div>
             </motion.div>
@@ -344,7 +345,7 @@ const MasterWithdraw = () => {
                     {selectedMethod.methodName}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    উইথড্র রিকোয়েস্ট ফর্ম
+                    Withdrawal Request Form
                   </p>
                 </div>
               </div>
@@ -363,7 +364,7 @@ const MasterWithdraw = () => {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    পেমেন্ট টাইপ
+                    Payment Type
                   </label>
                   <select
                     name="paymentType"
@@ -372,7 +373,7 @@ const MasterWithdraw = () => {
                     required
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-gray-800"
                   >
-                    <option value="">সিলেক্ট করুন</option>
+                    <option value="">Select</option>
                     {selectedMethod.paymentTypes.map((type) => (
                       <option key={type} value={type}>
                         {type}
@@ -383,7 +384,7 @@ const MasterWithdraw = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    অ্যাকাউন্ট নাম্বার
+                    Account Number
                   </label>
                   <input
                     name="accountNumber"
@@ -391,14 +392,14 @@ const MasterWithdraw = () => {
                     required
                     value={form.accountNumber}
                     onChange={handleChange}
-                    placeholder="যেমন: 017xx-xxxxxx"
+                    placeholder="Example: 01xxx-xxxxxx"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-gray-800"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    অ্যামাউন্ট (৳{selectedMethod.minAmount} - ৳
+                    Amount (৳{selectedMethod.minAmount} - ৳
                     {selectedMethod.maxAmount})
                   </label>
                   <input
@@ -419,17 +420,17 @@ const MasterWithdraw = () => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={mutation.isPending}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full bg-gradient-to-r cursor-pointer from-cyan-500 to-blue-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70"
                 >
                   {mutation.isPending ? (
                     <>
                       <Loader2 className="animate-spin" size={20} />
-                      পাঠানো হচ্ছে...
+                      Sending...
                     </>
                   ) : (
                     <>
                       <ArrowRight size={20} />
-                      রিকোয়েস্ট পাঠান
+                      Send Request
                     </>
                   )}
                 </motion.button>
