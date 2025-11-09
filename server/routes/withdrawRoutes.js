@@ -4,23 +4,120 @@ import WithdrawalMethod from "../models/WithdrawalMethod.js";
 import WithdrawalRequest from "../models/WithdrawalRequest.js";
 import Transaction from "../models/Transaction.js";
 import Admin from "../models/Admin.js";
+import upload from "../config/multer.js";
 
-// অ্যাড মেথড (সুপার ওনলি)
-router.post("/method", async (req, res) => {
-  const { adminId, methodName, paymentTypes, minAmount, maxAmount } = req.body;
-  const admin = await Admin.findById(adminId);
-  if (!admin || admin.role !== "super-affiliate")
-    return res.status(403).json({ msg: "Unauthorized" });
+// POST: Add Method (Super Affiliate Only)
+router.post("/method", upload.single("methodIcon"), async (req, res) => {
+  try {
+    const { adminId, methodName, paymentTypes, minAmount, maxAmount } = req.body;
 
-  const method = new WithdrawalMethod({
-    adminId,
-    methodName,
-    paymentTypes,
-    minAmount,
-    maxAmount,
-  });
-  await method.save();
-  res.json(method);
+    // Validate Admin
+    const admin = await Admin.findById(adminId);
+    if (!admin || admin.role !== "super-affiliate") {
+      return res.status(403).json({ msg: "Unauthorized" });
+    }
+
+    // Validate required fields
+    if (!methodName || !paymentTypes || !minAmount || !maxAmount) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
+    // Convert paymentTypes string to array
+    const paymentTypesArray = paymentTypes
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t);
+
+    if (paymentTypesArray.length === 0) {
+      return res.status(400).json({ msg: "At least one payment type is required" });
+    }
+
+    // Create new method
+    const method = new WithdrawalMethod({
+      adminId,
+      methodName: methodName.trim(),
+      paymentTypes: paymentTypesArray,
+      minAmount: Number(minAmount),
+      maxAmount: Number(maxAmount),
+      methodIcon: req.file ? `/uploads/method-icons/${req.file.filename}` : null,
+    });
+
+    await method.save();
+    console.log("Method Added:", method);
+    res.status(201).json(method);
+  } catch (err) {
+    console.error("POST /method error:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+});
+
+// PUT: Update Method (Super Affiliate Only)
+router.put("/method/:methodId", upload.single("methodIcon"), async (req, res) => {
+  try {
+    const { adminId, methodName, paymentTypes, minAmount, maxAmount } = req.body;
+    const methodId = req.params.methodId;
+
+    // Validate Admin
+    const admin = await Admin.findById(adminId);
+    if (!admin || admin.role !== "super-affiliate") {
+      return res.status(403).json({ msg: "Unauthorized" });
+    }
+
+    // Find existing method
+    const existingMethod = await WithdrawalMethod.findById(methodId);
+    if (!existingMethod) {
+      return res.status(404).json({ msg: "Method not found" });
+    }
+
+    // Validate required fields
+    if (!methodName || !paymentTypes || !minAmount || !maxAmount) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
+
+    // Convert paymentTypes string to array
+    const paymentTypesArray = paymentTypes
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t);
+
+    if (paymentTypesArray.length === 0) {
+      return res.status(400).json({ msg: "At least one payment type is required" });
+    }
+
+    // Prepare update data
+    const updateData = {
+      methodName: methodName.trim(),
+      paymentTypes: paymentTypesArray,
+      minAmount: Number(minAmount),
+      maxAmount: Number(maxAmount),
+    };
+
+    // Handle image update
+    if (req.file) {
+      // Delete old image if exists
+      if (existingMethod.methodIcon) {
+        const oldImagePath = path.join(__dirname, "..", existingMethod.methodIcon);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+          console.log("Deleted old image:", oldImagePath);
+        }
+      }
+      updateData.methodIcon = `/uploads/method-icons/${req.file.filename}`;
+    }
+
+    // Update method
+    const updatedMethod = await WithdrawalMethod.findByIdAndUpdate(
+      methodId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    console.log("Method Updated:", updatedMethod);
+    res.json(updatedMethod);
+  } catch (err) {
+    console.error("PUT /method error:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
 });
 
 // গেট মেথডস (সুপার বা মাস্টারের উপলাইনের)
@@ -31,22 +128,6 @@ router.get("/methods/:adminId", async (req, res) => {
   const methods = await WithdrawalMethod.find({ adminId: superId });
   res.json(methods);
 });
-
-// আপডেট মেথড (সুপার ওনলি)
-router.put("/method/:methodId", async (req, res) => {
-  const { adminId, methodName, paymentTypes, minAmount, maxAmount } = req.body;
-  const admin = await Admin.findById(adminId);
-  if (!admin || admin.role !== "super-affiliate")
-    return res.status(403).json({ msg: "Unauthorized" });
-
-  const method = await WithdrawalMethod.findByIdAndUpdate(
-    req.params.methodId,
-    { methodName, paymentTypes, minAmount, maxAmount },
-    { new: true }
-  );
-  res.json(method);
-});
-
 
 // DELETE /api/withdraw/method/:methodId
 router.delete("/method/:methodId", async (req, res) => {
@@ -128,7 +209,7 @@ router.get("/requests/:adminId", async (req, res) => {
       path: "pendingRequests",
       populate: [
         { path: "requesterId", select: "username firstName lastName" },
-        { path: "methodId", select: "methodName paymentTypes" },
+        { path: "methodId", select: "methodName paymentTypes methodIcon" },
       ],
     });
 

@@ -1,3 +1,4 @@
+// models/WithdrawalMethod.js
 import mongoose from "mongoose";
 
 const withdrawalMethodSchema = new mongoose.Schema({
@@ -6,6 +7,7 @@ const withdrawalMethodSchema = new mongoose.Schema({
   paymentTypes: [{ type: String }],
   minAmount: { type: Number, required: true },
   maxAmount: { type: Number, required: true },
+  methodIcon: { type: String }, // নতুন ফিল্ড: ইমেজ URL
 }, { timestamps: true });
 
 export default mongoose.model("WithdrawalMethod", withdrawalMethodSchema);
