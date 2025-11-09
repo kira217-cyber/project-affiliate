@@ -10,7 +10,7 @@ const Sidebar = () => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [activeSubDropdown, setActiveSubDropdown] = useState(null);
   const location = useLocation();
-  const { logout, user } = useContext(AuthContext);
+  const { logout, user,refreshBalance, balance } = useContext(AuthContext);
 
   const handleDropdown = (menu) => {
     setActiveDropdown(activeDropdown === menu ? null : menu);
@@ -122,9 +122,9 @@ const Sidebar = () => {
                 {" "}
                 Main{" "}
               </span>{" "}
-              <span className="">{user?.balance}</span>{" "}
+              <span className="">{balance}</span>{" "}
             </div>{" "}
-            <button className="flex items-center justify-center gap-2 hover:cursor-pointer">
+            <button onClick={refreshBalance} className="flex items-center justify-center gap-2 hover:cursor-pointer">
               {" "}
               <span className="font-bold py-2 px-4 bg-gray-700 text-[12px]">
                 {" "}

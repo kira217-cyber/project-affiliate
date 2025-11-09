@@ -52,7 +52,7 @@ const MasterAffiliate = () => {
     },
   ];
 
-  const referralLink = `${import.meta.env.VITE_API_URL_REFERRAL}/register?ref=${
+  const referralLink = `${import.meta.env.VITE_API_URL_MASTER_REFERRAL}/?ref=${
     user?.referralCode
   }`;
 
