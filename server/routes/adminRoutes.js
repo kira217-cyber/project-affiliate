@@ -61,6 +61,75 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// routes/auth.js
+router.post("/main/register", async (req, res) => {
+  const { username, email, whatsapp, password, referral } = req.body;
+
+  try {
+    // ইউজার আগে থেকে আছে?
+    const exists = await Admin.findOne({ $or: [{ email }, { username }] });
+    if (exists) return res.status(400).json({ message: "User already exists" });
+
+    let referredBy = null;
+    let newUserRole = "user"; // ডিফল্ট রোল
+
+    if (referral) {
+      const referrer = await Admin.findOne({ referralCode: referral });
+      if (!referrer) return res.status(400).json({ message: "Invalid referral code" });
+
+      referredBy = referrer._id;
+
+      // রেফারারের রোল চেক করে নতুন ইউজারের রোল নির্ধারণ
+      if (referrer.role === "super-affiliate") {
+        newUserRole = "master-affiliate";
+      } else if (referrer.role === "master-affiliate") {
+        newUserRole = "user";
+      }
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    // isActive লজিক: শুধু master-affiliate হলে false
+    const isActive = newUserRole === "master-affiliate" ? false : true;
+
+    const user = new Admin({
+      username,
+      email,
+      whatsapp,
+      password: hashedPassword,
+      role: newUserRole,
+      referredBy,
+      isActive,
+    });
+
+    const savedUser = await user.save();
+
+    // রেফারারের ডাটা আপডেট
+    if (referredBy) {
+      await Admin.findByIdAndUpdate(referredBy, {
+        $push: { pendingRequests: savedUser._id },
+        $push: { createdUsers: savedUser._id },
+      });
+    }
+
+    res.status(201).json({
+      message: "Registration successful",
+      user: {
+        id: savedUser._id,
+        username: savedUser.username,
+        email: savedUser.email,
+        role: savedUser.role,
+        isActive: savedUser.isActive,
+        referralCode: savedUser.referralCode,
+        referralLink: `${process.env.VITE_API_URL}/register?ref=${savedUser.referralCode}`,
+      },
+    });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+});
+
 // POST /login
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;

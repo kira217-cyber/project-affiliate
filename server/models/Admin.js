@@ -10,7 +10,7 @@ const adminSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ["super-affiliate", "master-affiliate"],
+      enum: ["super-affiliate", "master-affiliate", "user"],
       default: "super-affiliate",
     },
     referralCode: { type: String, unique: true },
