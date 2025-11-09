@@ -1,5 +1,5 @@
 // src/AdminComponents/WithdrawSystem/MasterWithdraw.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,13 +19,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // API Functions
 const fetchMethods = async (adminId) => {
+  if (!adminId) throw new Error("adminId is required");
   const { data } = await axios.get(
     `${import.meta.env.VITE_API_URL}/api/withdraw/methods/${adminId}`
   );
   return data;
 };
 
-const submitWithdrawRequest = async ({ adminId, payload }) => {
+const submitWithdrawRequest = async (payload) => {
   const { data } = await axios.post(
     `${import.meta.env.VITE_API_URL}/api/withdraw/request`,
     payload
@@ -37,6 +38,15 @@ const MasterWithdraw = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const adminId = localStorage.getItem("userId");
+
+  // Debug: Check adminId and API URL
+  useEffect(() => {
+    console.log("adminId:", adminId);
+    console.log("API URL:", import.meta.env.VITE_API_URL);
+    if (!adminId) {
+      toast.error("Please login first");
+    }
+  }, [adminId]);
 
   // Modal State
   const [selectedMethod, setSelectedMethod] = React.useState(null);
@@ -53,11 +63,13 @@ const MasterWithdraw = () => {
     data: methods = [],
     isLoading,
     isError: fetchError,
+    error: fetchErrorDetails,
   } = useQuery({
     queryKey: ["withdrawMethods", adminId],
     queryFn: () => fetchMethods(adminId),
     enabled: !!adminId,
     staleTime: 1000 * 60,
+    retry: 1,
   });
 
   // Submit Mutation
@@ -77,7 +89,6 @@ const MasterWithdraw = () => {
       setForm({ paymentType: "", accountNumber: "", amount: "" });
       setError("");
 
-      // Navigate after toast appears
       setTimeout(() => {
         navigate("/affiliate/transaction-history");
       }, 500);
@@ -111,7 +122,7 @@ const MasterWithdraw = () => {
       amount < selectedMethod.minAmount ||
       amount > selectedMethod.maxAmount
     ) {
-      const msg = `Amount ${selectedMethod.minAmount} - ${selectedMethod.maxAmount} Must be in Between`;
+      const msg = `Amount must be between ${selectedMethod.minAmount} - ${selectedMethod.maxAmount}`;
       setError(msg);
       toast.warn(msg);
       return;
@@ -125,7 +136,7 @@ const MasterWithdraw = () => {
       amount,
     };
 
-    mutation.mutate({ adminId, payload });
+    mutation.mutate(payload); // Fixed: payload directly
   };
 
   const openModal = (method) => {
@@ -141,14 +152,30 @@ const MasterWithdraw = () => {
     setError("");
   };
 
-  // Icons
-  const getMethodIcon = (name) => {
-    const lower = name?.toLowerCase() || "";
-    if (
-      lower.includes("bkash") ||
-      lower.includes("nagad") ||
-      lower.includes("rocket")
-    )
+  // Icon + Image Logic
+  const getMethodIcon = (method) => {
+    if (method.methodIcon) {
+      const imageUrl = `${import.meta.env.VITE_API_URL}${method.methodIcon}`;
+      return (
+        <div className="relative w-16 h-16">
+          <img
+            src={imageUrl}
+            alt={method.methodName}
+            className="w-full h-full object-contain rounded-lg"
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.nextElementSibling.style.display = "flex";
+            }}
+          />
+          <div className="hidden w-full h-full items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg">
+            <Smartphone className="w-6 h-6 text-white" />
+          </div>
+        </div>
+      );
+    }
+
+    const lower = method.methodName?.toLowerCase() || "";
+    if (lower.includes("bkash") || lower.includes("nagad") || lower.includes("rocket"))
       return <Smartphone className="w-6 h-6" />;
     if (lower.includes("bank")) return <Building2 className="w-6 h-6" />;
     return <Smartphone className="w-6 h-6" />;
@@ -159,22 +186,17 @@ const MasterWithdraw = () => {
     if (lower === "personal")
       return { icon: <User size={14} />, color: "bg-blue-100 text-blue-700" };
     if (lower === "agent")
-      return {
-        icon: <Store size={14} />,
-        color: "bg-green-100 text-green-700",
-      };
+      return { icon: <Store size={14} />, color: "bg-green-100 text-green-700" };
     if (lower === "merchant")
-      return {
-        icon: <Building2 size={14} />,
-        color: "bg-purple-100 text-purple-700",
-      };
+      return { icon: <Building2 size={14} />, color: "bg-purple-100 text-purple-700" };
     return { icon: <User size={14} />, color: "bg-gray-100 text-gray-700" };
   };
 
+  // If not logged in
   if (!adminId) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white text-xl">
-        Login First
+        Please Login First
       </div>
     );
   }
@@ -187,7 +209,7 @@ const MasterWithdraw = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen p-6"
         style={{
-          background: "#0f172a", // Solid hard background color
+          background: "#0f172a",
           fontFamily: '"Poppins", sans-serif',
         }}
       >
@@ -207,10 +229,11 @@ const MasterWithdraw = () => {
             </p>
           </motion.div>
 
-          {/* Fetch Error */}
+          {/* API Error */}
           {fetchError && (
             <div className="text-center py-10 text-red-300">
-              There was a Problem Loading the Method.
+              <p>Error: {fetchErrorDetails?.message || "Failed to load methods"}</p>
+              <p className="text-sm mt-2">Check console for details</p>
             </div>
           )}
 
@@ -241,8 +264,8 @@ const MasterWithdraw = () => {
                 >
                   <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                     <div className="flex justify-between items-start mb-4">
-                      <div className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white p-3 rounded-xl flex items-center justify-center">
-                        {getMethodIcon(method.methodName)}
+                      <div className="bg-white p-2 rounded-xl flex items-center justify-center">
+                        {getMethodIcon(method)}
                       </div>
                       <ArrowRight className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
                     </div>
@@ -282,7 +305,7 @@ const MasterWithdraw = () => {
 
                     <div className="mt-4 pt-4 border-t border-white/20">
                       <p className="text-sm text-white/70 text-center">
-                        Click to Request.
+                        Click to Request
                       </p>
                     </div>
                   </div>
@@ -303,11 +326,16 @@ const MasterWithdraw = () => {
                   <AlertCircle size={48} className="text-white/60" />
                 </div>
                 <p className="text-white/80 text-lg">
-                  No Withdrawal Method Found.
+                  No Withdrawal Method Found
                 </p>
                 <p className="text-white/60 text-sm mt-2">
-                  Add your Super Affiliate Method
+                  Super Affiliate hasn't added any method yet
                 </p>
+                {adminId && (
+                  <p className="text-xs text-white/50 mt-4">
+                    adminId: {adminId}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
@@ -337,8 +365,8 @@ const MasterWithdraw = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-xl text-white">
-                  {getMethodIcon(selectedMethod.methodName)}
+                <div className="bg-white p-2 rounded-xl text-white flex items-center justify-center">
+                  {getMethodIcon(selectedMethod)}
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800">
@@ -373,7 +401,7 @@ const MasterWithdraw = () => {
                     required
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-gray-800"
                   >
-                    <option value="">Select</option>
+                    <option value="">Select Type</option>
                     {selectedMethod.paymentTypes.map((type) => (
                       <option key={type} value={type}>
                         {type}
@@ -392,15 +420,14 @@ const MasterWithdraw = () => {
                     required
                     value={form.accountNumber}
                     onChange={handleChange}
-                    placeholder="Example: 01xxx-xxxxxx"
+                    placeholder="01xxx-xxxxxx"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-gray-800"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Amount (৳{selectedMethod.minAmount} - ৳
-                    {selectedMethod.maxAmount})
+                    Amount (৳{selectedMethod.minAmount} - ৳{selectedMethod.maxAmount})
                   </label>
                   <input
                     name="amount"
@@ -420,7 +447,7 @@ const MasterWithdraw = () => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={mutation.isPending}
-                  className="w-full bg-gradient-to-r cursor-pointer from-cyan-500 to-blue-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70 cursor-pointer"
                 >
                   {mutation.isPending ? (
                     <>

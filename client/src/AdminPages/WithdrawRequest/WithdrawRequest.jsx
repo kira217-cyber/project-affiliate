@@ -95,7 +95,7 @@ const WithdrawRequest = () => {
     refetchInterval: 10000,
   });
 
-  // 3. APPROVE MUTATION (instant toast)
+  // 3. APPROVE MUTATION
   const approveMutation = useMutation({
     mutationFn: approveRequest,
     onMutate: async ({ requestId }) => {
@@ -104,7 +104,6 @@ const WithdrawRequest = () => {
       });
       const previous = queryClient.getQueryData(["withdrawRequests", adminId]);
 
-      // Instant UI + Toast
       queryClient.setQueryData(["withdrawRequests", adminId], (old = []) =>
         old.map((r) => (r._id === requestId ? { ...r, status: "approved" } : r))
       );
@@ -130,7 +129,7 @@ const WithdrawRequest = () => {
     },
   });
 
-  // 4. REJECT MUTATION (instant toast)
+  // 4. REJECT MUTATION
   const rejectMutation = useMutation({
     mutationFn: rejectRequest,
     onMutate: async ({ requestId }) => {
@@ -139,7 +138,6 @@ const WithdrawRequest = () => {
       });
       const previous = queryClient.getQueryData(["withdrawRequests", adminId]);
 
-      // Instant UI + Toast
       queryClient.setQueryData(["withdrawRequests", adminId], (old = []) =>
         old.map((r) => (r._id === requestId ? { ...r, status: "rejected" } : r))
       );
@@ -179,9 +177,32 @@ const WithdrawRequest = () => {
     return processed && Date.now() - processed.timestamp <= 60000;
   });
 
-  // Icons
-  const getMethodIcon = (name) => {
-    const lower = (name || "").toLowerCase();
+  // Icon + Image Logic (নতুন)
+  const getMethodIcon = (method) => {
+    if (!method) return <Smartphone className="w-5 h-5" />;
+
+    if (method.methodIcon) {
+      const imageUrl = `${import.meta.env.VITE_API_URL}${method.methodIcon}`;
+      console.log("Method Icon URL:", imageUrl);      
+      return (
+        <div className="relative w-16 h-16">
+          <img
+            src={imageUrl}
+            alt={method.methodName}
+            className="w-full h-full object-contain rounded-lg"
+            onError={(e) => {
+              e.target.style.display = "none";
+              e.target.nextElementSibling.style.display = "flex";
+            }}
+          />
+          <div className="hidden w-full h-full items-center justify-center bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg">
+            <Smartphone className="w-5 h-5 text-white" />
+          </div>
+        </div>
+      );
+    }
+
+    const lower = (method.methodName || "").toLowerCase();
     if (
       lower.includes("bkash") ||
       lower.includes("nagad") ||
@@ -256,7 +277,7 @@ const WithdrawRequest = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen p-6"
         style={{
-          background: "#0f172a", // Solid hard background color
+          background: "#0f172a",
           fontFamily: '"Poppins", sans-serif',
         }}
       >
@@ -322,8 +343,8 @@ const WithdrawRequest = () => {
                     >
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex items-center gap-2">
-                          <div className="bg-gradient-to-br from-orange-500 to-yellow-500 p-2 rounded-xl text-white">
-                            {getMethodIcon(req.methodId?.methodName)}
+                          <div className="bg-white p-2 rounded-xl text-white flex items-center justify-center">
+                            {getMethodIcon(req.methodId)}
                           </div>
                           <div>
                             <h3 className="text-xl font-bold text-white">

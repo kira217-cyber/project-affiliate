@@ -1,5 +1,5 @@
 // src/AdminComponents/WithdrawSystem/SuperWithdraw.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,6 +13,7 @@ import {
   User,
   Store,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -23,7 +24,9 @@ const SuperWithdraw = () => {
     paymentTypes: "",
     minAmount: "",
     maxAmount: "",
+    methodIcon: null,
   });
+  const [preview, setPreview] = useState(null);
   const [editId, setEditId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -31,6 +34,7 @@ const SuperWithdraw = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const fileInputRef = useRef(null);
   const adminId = localStorage.getItem("userId");
 
   useEffect(() => {
@@ -46,6 +50,7 @@ const SuperWithdraw = () => {
       setMethods(res.data);
     } catch (err) {
       console.error(err);
+      toast.error("Failed to load methods.");
     } finally {
       setLoading(false);
     }
@@ -53,41 +58,50 @@ const SuperWithdraw = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: name.includes("Amount") ? value : value });
+    setForm({ ...form, [name]: value });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setForm({ ...form, methodIcon: file });
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    try {
-      const data = {
-        adminId,
-        methodName: form.methodName.trim(),
-        paymentTypes: form.paymentTypes
-          .split(",")
-          .map((t) => t.trim())
-          .filter((t) => t),
-        minAmount: Number(form.minAmount),
-        maxAmount: Number(form.maxAmount),
-      };
 
+    const formData = new FormData();
+    formData.append("adminId", adminId);
+    formData.append("methodName", form.methodName.trim());
+    formData.append("paymentTypes", form.paymentTypes);
+    formData.append("minAmount", form.minAmount);
+    formData.append("maxAmount", form.maxAmount);
+    if (form.methodIcon) formData.append("methodIcon", form.methodIcon);
+
+    try {
       if (editId) {
         await axios.put(
           `${import.meta.env.VITE_API_URL}/api/withdraw/method/${editId}`,
-          data
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
+        toast.success("Method Updated!");
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_URL}/api/withdraw/method`,
-          data
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
+        toast.success("New Method Added!");
       }
 
       fetchMethods();
-      toast.success(editId ? "Method Updated!" : "New Method Added.");
       closeModal();
     } catch (err) {
-      toast.error("There was a problem Saving.");
+      toast.error("There was a problem saving.");
     } finally {
       setSaving(false);
     }
@@ -99,7 +113,9 @@ const SuperWithdraw = () => {
       paymentTypes: method.paymentTypes.join(", "),
       minAmount: method.minAmount,
       maxAmount: method.maxAmount,
+      methodIcon: null,
     });
+    setPreview(method.methodIcon ? `${import.meta.env.VITE_API_URL}${method.methodIcon}` : null);
     setEditId(method._id);
     setModalOpen(true);
   };
@@ -107,10 +123,12 @@ const SuperWithdraw = () => {
   const closeModal = () => {
     setModalOpen(false);
     setEditId(null);
-    setForm({ methodName: "", paymentTypes: "", minAmount: "", maxAmount: "" });
+    setForm({ methodName: "", paymentTypes: "", minAmount: "", maxAmount: "", methodIcon: null });
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Delete functions
+  // Delete Functions
   const openDelete = (id) => {
     setDeleteId(id);
     setDeleteModal(true);
@@ -128,17 +146,27 @@ const SuperWithdraw = () => {
         `${import.meta.env.VITE_API_URL}/api/withdraw/method/${deleteId}`
       );
       fetchMethods();
-      toast.success("Method Deleted.");
+      toast.success("Method Deleted Successfully.");
       closeDelete();
     } catch (err) {
-      toast.error("There was a problem Deleting.");
+      toast.error("Failed to delete method.");
     } finally {
       setDeleting(false);
     }
   };
 
-  const getMethodIcon = (name) => {
-    const lower = name.toLowerCase();
+  const getMethodIcon = (method) => {
+    if (method.methodIcon) {
+      return (
+        <img
+          src={`${import.meta.env.VITE_API_URL}${method.methodIcon}`}
+          alt={method.methodName}
+          className="w-16 h-16 object-contain rounded-lg"
+        />
+      );
+    }
+
+    const lower = method.methodName.toLowerCase();
     if (lower.includes("bkash")) return <Smartphone className="w-6 h-6" />;
     if (lower.includes("nagad")) return <Smartphone className="w-6 h-6" />;
     if (lower.includes("rocket")) return <Smartphone className="w-6 h-6" />;
@@ -151,15 +179,9 @@ const SuperWithdraw = () => {
     if (lower === "personal")
       return { icon: <User size={14} />, color: "bg-blue-100 text-blue-700" };
     if (lower === "agent")
-      return {
-        icon: <Store size={14} />,
-        color: "bg-green-100 text-green-700",
-      };
+      return { icon: <Store size={14} />, color: "bg-green-100 text-green-700" };
     if (lower === "merchant")
-      return {
-        icon: <Building2 size={14} />,
-        color: "bg-purple-100 text-purple-700",
-      };
+      return { icon: <Building2 size={14} />, color: "bg-purple-100 text-purple-700" };
     return { icon: <User size={14} />, color: "bg-gray-100 text-gray-700" };
   };
 
@@ -171,7 +193,7 @@ const SuperWithdraw = () => {
         animate={{ opacity: 1 }}
         className="min-h-screen p-6"
         style={{
-          background: "#0f172a", // Solid hard background color
+          background: "#0f172a",
           fontFamily: '"Poppins", sans-serif',
         }}
       >
@@ -206,7 +228,7 @@ const SuperWithdraw = () => {
             </button>
           </motion.div>
 
-          {/* Loading State */}
+          {/* Loading */}
           {loading && (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="w-12 h-12 text-white animate-spin" />
@@ -232,19 +254,19 @@ const SuperWithdraw = () => {
                 >
                   <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                     <div className="flex justify-between items-start mb-4">
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white p-3 rounded-xl flex items-center justify-center">
-                        {getMethodIcon(method.methodName)}
+                      <div className="bg-white p-2 rounded-xl flex items-center justify-center">
+                        {getMethodIcon(method)}
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => openEdit(method)}
-                          className="bg-white/20 cursor-pointer backdrop-blur p-2 rounded-lg hover:bg-white/30"
+                          className="bg-white/20 backdrop-blur p-2 rounded-lg hover:bg-white/30 cursor-pointer"
                         >
                           <Edit2 size={18} className="text-white" />
                         </button>
                         <button
                           onClick={() => openDelete(method._id)}
-                          className="bg-red-500/20 cursor-pointer backdrop-blur p-2 rounded-lg hover:bg-red-500/30"
+                          className="bg-red-500/20 backdrop-blur p-2 rounded-lg hover:bg-red-500/30 cursor-pointer"
                         >
                           <Trash2 size={18} className="text-red-300" />
                         </button>
@@ -258,15 +280,11 @@ const SuperWithdraw = () => {
                     <div className="space-y-3 text-white/90">
                       <p className="flex justify-between">
                         <span>Minimum:</span>
-                        <span className="font-semibold">
-                          ৳{method.minAmount}
-                        </span>
+                        <span className="font-semibold">৳{method.minAmount}</span>
                       </p>
                       <p className="flex justify-between">
                         <span>Maximum:</span>
-                        <span className="font-semibold">
-                          ৳{method.maxAmount}
-                        </span>
+                        <span className="font-semibold">৳{method.maxAmount}</span>
                       </p>
 
                       <div className="flex flex-wrap gap-2 mt-3">
@@ -341,13 +359,14 @@ const SuperWithdraw = () => {
                 </h2>
                 <button
                   onClick={closeModal}
-                  className="p-2 hover:bg-gray-100 cursor-pointer rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                 >
                   <X size={24} className="text-gray-500" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Method Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Method Name
@@ -364,6 +383,7 @@ const SuperWithdraw = () => {
                   />
                 </div>
 
+                {/* Payment Types */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Payment Type (Separate By Comma)
@@ -383,6 +403,39 @@ const SuperWithdraw = () => {
                   </p>
                 </div>
 
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Method Icon (Optional)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {preview && (
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="w-16 h-16 object-contain rounded-lg border"
+                      />
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
+                        <Upload size={18} />
+                        Upload Image
+                      </div>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    JPG, PNG, WebP (Max 5MB)
+                  </p>
+                </div>
+
+                {/* Min Max */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -468,10 +521,10 @@ const SuperWithdraw = () => {
                   <Trash2 size={32} className="text-red-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Delete?
+                  Delete Method?
                 </h3>
                 <p className="text-gray-600">
-                  This Method Will Be Permanently Deleted.
+                  This action cannot be undone. The method will be permanently removed.
                 </p>
               </div>
 
