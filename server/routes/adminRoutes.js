@@ -312,4 +312,17 @@ router.patch("/update-master-affiliate-credentials/:id", async (req, res) => {
   }
 });
 
+// routes/admin.js
+router.get("/super-affiliates", async (req, res) => {
+  try {
+    const superAffiliates = await Admin.find({ role: "super-affiliate" })
+      .select("username email whatsapp balance password isActive commission depositCommission gameCommission");
+
+    res.json({ users: superAffiliates });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 export default router;
