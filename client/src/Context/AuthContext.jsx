@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(0); // নতুন: ব্যালেন্স
   const [loading, setLoading] = useState(true);
+  const [commissionBalance, setCommissionBalance] = useState(0);  
 
   const { data, refetch } = useQuery({
     queryKey: ["user"],
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       const fetchedUser = res.data.user;
       if (fetchedUser) {
         setBalance(fetchedUser.balance || 0);
-        console.log("Balance refreshed:", fetchedUser.balance);
+        setCommissionBalance(fetchedUser.commissionBalance || 0); // কমিশন ব্যালেন্স সেট
       }
     } catch (err) {
       console.error("Balance refresh failed:", err);
@@ -76,7 +77,8 @@ export const AuthProvider = ({ children }) => {
       loading, 
       logout, 
       balance,         // নতুন
-      refreshBalance   // নতুন
+      refreshBalance,   // নতুন
+      commissionBalance
     }}>
       {children}
     </AuthContext.Provider>
