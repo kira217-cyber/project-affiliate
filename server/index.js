@@ -6,6 +6,9 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import withdrawRoutes from "./routes/withdrawRoutes.js";
+import sliderRoutes from "./routes/sliderRoutes.js";
+import navbarRoutes from "./routes/navbarRoutes.js";
+
 
 dotenv.config();
 const app = express();
@@ -25,6 +28,8 @@ connectDB();
 // Routes
 app.use("/api", adminRoutes);
 app.use("/api/withdraw", withdrawRoutes);
+app.use('/api/sliders', sliderRoutes);
+app.use("/api/navbar", navbarRoutes);
 
 // Test route
 app.get("/", (req, res) => {
