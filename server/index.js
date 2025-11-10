@@ -8,6 +8,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import withdrawRoutes from "./routes/withdrawRoutes.js";
 import sliderRoutes from "./routes/sliderRoutes.js";
 import navbarRoutes from "./routes/navbarRoutes.js";
+import whyChooseUsRoutes from "./routes/whyChooseUsRoutes.js"
 
 
 dotenv.config();
@@ -30,6 +31,7 @@ app.use("/api", adminRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use('/api/sliders', sliderRoutes);
 app.use("/api/navbar", navbarRoutes);
+app.use("/api/why-choose-us", whyChooseUsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
