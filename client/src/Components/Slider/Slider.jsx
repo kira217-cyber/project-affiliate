@@ -49,7 +49,7 @@ const Slider = () => {
     <div className="relative w-full bg-black text-white overflow-hidden">
       <div className={`flex flex-col md:flex-row items-center justify-between max-w-7xl mx-auto px-4 py-20 transition-opacity duration-700 ${fade ? "opacity-100" : "opacity-0"}`}>
         <div className="flex-1 flex justify-center">
-          <img src={`${API_URL}${s.image}`} alt={s.title} className="w-full max-w-md h-96 object-contain drop-shadow-lg" />
+          <img src={`${API_URL}${s.image}`} alt={s.title} className="w-full max-w-md h-96 object-contain drop-shadow-[0_0_25px_#99FF47]" />
         </div>
         <div className="flex-1 text-center md:text-left mt-6 md:mt-0 space-y-4">
           <h1 className={`text-3xl md:${s.titleSize} font-bold`} style={{ color: s.titleColor }}>
@@ -81,7 +81,7 @@ const Slider = () => {
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
         {slides.map((_, i) => (
           <div key={i} onClick={() => setCurrent(i)}
-               className={`w-3 h-3 rounded-full cursor-pointer transition ${current === i ? "bg-green-400" : "bg-gray-500"}`} />
+               className={`w-3 h-3 rounded-full cursor-pointer transition ${current === i ? "bg-primary" : "bg-gray-500"}`} />
         ))}
       </div>
     </div>
