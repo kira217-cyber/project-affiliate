@@ -220,6 +220,8 @@ router.get("/requests/:adminId", async (req, res) => {
     res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
+
+
 // approve
 router.put("/approve/:requestId", async (req, res) => {
   try {
@@ -244,7 +246,7 @@ router.put("/approve/:requestId", async (req, res) => {
     await request.save();
 
     // Add to Super's balance
-    admin.balance += request.amount;
+    admin.commissionBalance += request.amount;
     await admin.save();
 
     // Remove from pending
@@ -274,6 +276,7 @@ router.put("/approve/:requestId", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
 // reject
 router.put("/reject/:requestId", async (req, res) => {
   try {

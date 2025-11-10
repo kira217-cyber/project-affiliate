@@ -16,7 +16,8 @@ router.post("/register", async (req, res) => {
     let referredBy = null;
     if (referral) {
       const referrer = await Admin.findOne({ referralCode: referral });
-      if (!referrer) return res.status(400).json({ message: "Invalid referral code" });
+      if (!referrer)
+        return res.status(400).json({ message: "Invalid referral code" });
       referredBy = referrer._id;
     }
 
@@ -30,7 +31,7 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       role: referral ? "master-affiliate" : "super-affiliate",
       referredBy,
-      isActive: referral ? false : true, // রেফারেল হলে পেন্ডিং
+      isActive: referral ? false : false, // রেফারেল হলে পেন্ডিং
     });
 
     const savedUser = await user.save();
@@ -75,7 +76,8 @@ router.post("/main/register", async (req, res) => {
 
     if (referral) {
       const referrer = await Admin.findOne({ referralCode: referral });
-      if (!referrer) return res.status(400).json({ message: "Invalid referral code" });
+      if (!referrer)
+        return res.status(400).json({ message: "Invalid referral code" });
 
       referredBy = referrer._id;
 
@@ -143,7 +145,8 @@ router.post("/login", async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
     res.json({
       message: "Login successful",
@@ -172,11 +175,13 @@ router.get("/admin", async (req, res) => {
       .select("-password")
       .populate({
         path: "pendingRequests",
-        select: "username email whatsapp balance password isActive commission depositCommission gameCommission",
+        select:
+          "username email whatsapp balance password isActive gameLossCommission depositCommission referCommission commissionBalance",
       })
       .populate({
         path: "createdUsers",
-        select: "username email whatsapp balance password isActive commission depositCommission gameCommission",
+        select:
+          "username email whatsapp balance password isActive gameLossCommission depositCommission referCommission commissionBalance",
       });
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -191,19 +196,25 @@ router.get("/admin", async (req, res) => {
 // routes/admin.js → PATCH /approve-user/:id
 router.patch("/approve-user/:id", async (req, res) => {
   const { id } = req.params;
-  const { commission = 0, depositCommission = 0, gameCommission = 0 } = req.body;
+  const {
+    gameLossCommission = 0,
+    depositCommission = 0,
+    referCommission = 0,
+  } = req.body;
 
   try {
     const user = await Admin.findByIdAndUpdate(
       id,
       {
         isActive: true,
-        commission: Number(commission),
+        gameLossCommission: Number(gameLossCommission),
         depositCommission: Number(depositCommission),
-        gameCommission: Number(gameCommission),
+        referCommission: Number(referCommission),
       },
       { new: true }
-    ).select("username email whatsapp isActive commission depositCommission gameCommission");
+    ).select(
+      "username email whatsapp isActive gameLossCommission depositCommission referCommission commissionBalance"
+    );
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -295,7 +306,8 @@ router.patch("/update-master-affiliate-credentials/:id", async (req, res) => {
     // ইউজারনেম আপডেট
     if (username && username !== user.username) {
       const existing = await Admin.findOne({ username });
-      if (existing) return res.status(400).json({ message: "Username already taken" });
+      if (existing)
+        return res.status(400).json({ message: "Username already taken" });
       user.username = username;
     }
 
@@ -315,14 +327,30 @@ router.patch("/update-master-affiliate-credentials/:id", async (req, res) => {
 // routes/admin.js
 router.get("/super-affiliates", async (req, res) => {
   try {
-    const superAffiliates = await Admin.find({ role: "super-affiliate" })
-      .select("username email whatsapp balance password isActive commission depositCommission gameCommission");
+    const superAffiliates = await Admin.find({
+      role: "super-affiliate",
+    }).select(
+      "username email whatsapp balance password isActive gameLossCommission depositCommission referCommission commissionBalance"
+    );
 
     res.json({ users: superAffiliates });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+// routes/admin.js
+router.get("/master-affiliates", async (req, res) => {
+  try {
+    const masterAffiliates = await Admin.find({
+      role: "master-affiliate",
+    }).select(
+      "username email whatsapp balance password isActive gameLossCommission depositCommission referCommission commissionBalance"
+    );
 
+    res.json({ users: masterAffiliates });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 export default router;
