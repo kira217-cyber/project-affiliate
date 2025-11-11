@@ -36,7 +36,7 @@ const upload = multer({
 export const uploadAny = upload.any(); // For icons[0], icons[1], etc.
 export const uploadFields = upload.fields([
   { name: "backgroundImage", maxCount: 1 },
-  { name: "icons", maxCount: 10 }, // Optional: for old format
+  { name: "icons", maxCount: 30 }, // Optional: for old format
 ]);
 
 export default upload;

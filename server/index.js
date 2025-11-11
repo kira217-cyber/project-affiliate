@@ -9,6 +9,7 @@ import withdrawRoutes from "./routes/withdrawRoutes.js";
 import sliderRoutes from "./routes/sliderRoutes.js";
 import navbarRoutes from "./routes/navbarRoutes.js";
 import whyChooseUsRoutes from "./routes/whyChooseUsRoutes.js"
+import howToProcessRoutes from "./routes/howToProcessRoutes.js";
 
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use("/api/withdraw", withdrawRoutes);
 app.use('/api/sliders', sliderRoutes);
 app.use("/api/navbar", navbarRoutes);
 app.use("/api/why-choose-us", whyChooseUsRoutes);
+app.use("/api/how-to-process", howToProcessRoutes);
 
 // Test route
 app.get("/", (req, res) => {
