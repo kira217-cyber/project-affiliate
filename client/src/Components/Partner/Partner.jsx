@@ -1,10 +1,33 @@
-import React from "react";
+// components/Partner.jsx
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Triker from "../Triker/Triker";
-
-
+import axios from "axios";
+import Tricker from "../Tricker/Tricker";
 
 const Partner = () => {
+  const [data, setData] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL 
+
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/api/partner`)
+      .then((res) => setData(res.data))
+      .catch((err) => console.log("Partner ডাটা লোড হয়নি:", err));
+  }, []);
+
+  // লোডিং অবস্থা
+  if (!data) {
+    return (
+      <div className="bg-black text-white py-12 px-4 flex flex-col items-center justify-center overflow-hidden relative min-h-96">
+        <div className="text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-700 rounded w-64 mb-8"></div>
+            <div className="h-64 bg-gray-800 rounded-xl w-full max-w-4xl"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black text-white py-12 px-4 flex flex-col items-center justify-center overflow-hidden relative">
@@ -13,7 +36,10 @@ const Partner = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.15 }}
         transition={{ duration: 1 }}
-        className="absolute inset-0 bg-[url('https://i.ibb.co.com/cKsgJMVB/photo-1689443111130-6e9c7dfd8f9e.jpg')] bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${API_URL}${data.bgImage})`,
+        }}
       />
 
       {/* শিরোনাম */}
@@ -23,11 +49,10 @@ const Partner = () => {
         transition={{ duration: 0.6 }}
         className="text-2xl md:text-3xl font-bold text-center mb-8 z-10"
       >
-        <span className="text-primary">Special Partner</span>{" "}
-        <span className="text-white">বিশেষ অংশীদার</span>
+        <span className="text-primary">{data.titleEn}</span>{" "}
+        <span className="text-white">{data.titleBn}</span>
       </motion.h2>
 
-     
       {/* CTA Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -42,8 +67,8 @@ const Partner = () => {
           className="flex-1 flex justify-center"
         >
           <img
-            src="https://i.ibb.co.com/WNkZ1WWz/casino-illustration-vector-3d-elements-theme-casinos-gambling-396616-1541.jpg"
-            alt="RajaBaji Promo"
+            src={`${API_URL}${data.leftImage}`}
+            alt="Partner Promo"
             className="w-64 md:w-80 lg:w-96"
           />
         </motion.div>
@@ -55,9 +80,15 @@ const Partner = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-lg">
-            এখনই নিবন্ধন করুন এবং <span className="text-primary font-semibold">৫০% পর্যন্ত রাজস্ব ভাগ</span> সহ আমাদের নতুন অ্যাফিলিয়েট সদস্য হিসেবে উপার্জন শুরু করুন!
-          </p>
+          <p
+            className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-lg"
+            dangerouslySetInnerHTML={{
+              __html: data.description.replace(
+                data.highlightText,
+                `<span class="text-primary font-semibold">${data.highlightText}</span>`
+              ),
+            }}
+          />
 
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -65,15 +96,13 @@ const Partner = () => {
             transition={{ type: "spring", stiffness: 300 }}
             className="bg-primary hover:bg-primary cursor-pointer text-black font-semibold px-6 py-3 rounded-full shadow-lg"
           >
-            আমাদের অংশীদার হোন
+            {data.buttonText}
           </motion.button>
         </motion.div>
       </motion.div>
-
-       {/* স্লাইডার */}
-    <div className="mt-5">
-       <Triker></Triker>
-    </div>
+      <div className="mt-5">
+        <Tricker></Tricker>
+      </div>
     </div>
   );
 };
