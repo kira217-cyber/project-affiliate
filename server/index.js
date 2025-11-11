@@ -8,9 +8,9 @@ import adminRoutes from "./routes/adminRoutes.js";
 import withdrawRoutes from "./routes/withdrawRoutes.js";
 import sliderRoutes from "./routes/sliderRoutes.js";
 import navbarRoutes from "./routes/navbarRoutes.js";
-import whyChooseUsRoutes from "./routes/whyChooseUsRoutes.js"
+import whyChooseUsRoutes from "./routes/whyChooseUsRoutes.js";
 import howToProcessRoutes from "./routes/howToProcessRoutes.js";
-
+import commissionRoutes from "./routes/commissionRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -30,10 +30,11 @@ connectDB();
 // Routes
 app.use("/api", adminRoutes);
 app.use("/api/withdraw", withdrawRoutes);
-app.use('/api/sliders', sliderRoutes);
+app.use("/api/sliders", sliderRoutes);
 app.use("/api/navbar", navbarRoutes);
 app.use("/api/why-choose-us", whyChooseUsRoutes);
 app.use("/api/how-to-process", howToProcessRoutes);
+app.use("/api/commission", commissionRoutes);
 
 // Test route
 app.get("/", (req, res) => {
