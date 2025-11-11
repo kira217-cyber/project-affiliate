@@ -11,6 +11,8 @@ import navbarRoutes from "./routes/navbarRoutes.js";
 import whyChooseUsRoutes from "./routes/whyChooseUsRoutes.js";
 import howToProcessRoutes from "./routes/howToProcessRoutes.js";
 import commissionRoutes from "./routes/commissionRoutes.js";
+import partnerRoutes from "./routes/partnerRoutes.js";
+import trickerRoutes from "./routes/trickerRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -35,6 +37,8 @@ app.use("/api/navbar", navbarRoutes);
 app.use("/api/why-choose-us", whyChooseUsRoutes);
 app.use("/api/how-to-process", howToProcessRoutes);
 app.use("/api/commission", commissionRoutes);
+app.use("/api/partner", partnerRoutes);
+app.use("/api/tricker", trickerRoutes);
 
 // Test route
 app.get("/", (req, res) => {
