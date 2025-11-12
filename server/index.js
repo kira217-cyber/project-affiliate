@@ -13,6 +13,10 @@ import howToProcessRoutes from "./routes/howToProcessRoutes.js";
 import commissionRoutes from "./routes/commissionRoutes.js";
 import partnerRoutes from "./routes/partnerRoutes.js";
 import trickerRoutes from "./routes/trickerRoutes.js";
+import lastPartRoutes from "./routes/lastPartRoutes.js";
+import footerRoutes from "./routes/footerRoutes.js";
+import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
+import AdminSiteSettingsRoutes from "./routes/adminSiteSettingsRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -39,6 +43,10 @@ app.use("/api/how-to-process", howToProcessRoutes);
 app.use("/api/commission", commissionRoutes);
 app.use("/api/partner", partnerRoutes);
 app.use("/api/tricker", trickerRoutes);
+app.use("/api/lastpart", lastPartRoutes);
+app.use("/api/footer", footerRoutes);
+app.use("/api/site-settings", siteSettingsRoutes);
+app.use("/api/admin-site-settings", AdminSiteSettingsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
