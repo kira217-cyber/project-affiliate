@@ -1,10 +1,9 @@
 import React, { useContext } from "react";
 import { motion } from "framer-motion";
-import { LazyLoadComponent } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
-import YouTube from "react-youtube";
 import toast, { Toaster } from "react-hot-toast";
 import { AuthContext } from "../../Context/AuthContext";
+import MasterAffiliateVideo from "./MasterAffiliateVideo";
 
 const MasterAffiliate = () => {
   const { user } = useContext(AuthContext);
@@ -72,7 +71,8 @@ const MasterAffiliate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-6">
+    
+    <><div className="bg-black text-white flex flex-col items-center p-6">
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* 🔗 Reffer Link Section */}
@@ -115,39 +115,9 @@ const MasterAffiliate = () => {
         ))}
       </div>
 
-      {/* 🎬 Video Tutorial Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="mt-10 w-full bg-gradient-to-r from-green-400 via-lime-500 to-yellow-400 text-black font-bold text-center text-xl py-3 rounded-md"
-      >
-        🎥 Video Tutorial — How to Use Master Affiliate System
-      </motion.div>
-
-      {/* ▶️ Lazy YouTube Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 w-full">
-        <LazyLoadComponent>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden rounded-2xl shadow-lg"
-          >
-            <YouTube videoId="ScMzIvxBSi4" opts={opts} />
-          </motion.div>
-        </LazyLoadComponent>
-
-        <LazyLoadComponent>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden rounded-2xl shadow-lg"
-          >
-            <YouTube videoId="ScMzIvxBSi4" opts={opts} />
-          </motion.div>
-        </LazyLoadComponent>
-      </div>
     </div>
+    <MasterAffiliateVideo></MasterAffiliateVideo>
+    </>
   );
 };
 

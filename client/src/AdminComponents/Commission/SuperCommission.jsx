@@ -7,7 +7,7 @@ const SuperCommission = () => {
   const { user ,commissionBalance} = useContext(AuthContext);
   const stats = [
     {
-      title: "Commission balance",
+      title: "Total Withdraw Balance",
       value: commissionBalance,
       gradient: "from-pink-500 via-red-500 to-yellow-500",
     },
