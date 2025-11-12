@@ -17,6 +17,8 @@ import lastPartRoutes from "./routes/lastPartRoutes.js";
 import footerRoutes from "./routes/footerRoutes.js";
 import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
 import AdminSiteSettingsRoutes from "./routes/adminSiteSettingsRoutes.js";
+import superAffiliateVideoRoutes from "./routes/superAffiliateVideoRoutes.js";
+import masterAffiliateVideoRoutes from "./routes/masterAffiliateVideoRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -47,6 +49,8 @@ app.use("/api/lastpart", lastPartRoutes);
 app.use("/api/footer", footerRoutes);
 app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api/admin-site-settings", AdminSiteSettingsRoutes);
+app.use("/api/super-affiliate-video", superAffiliateVideoRoutes);
+app.use("/api/master-affiliate-video", masterAffiliateVideoRoutes);
 
 // Test route
 app.get("/", (req, res) => {
