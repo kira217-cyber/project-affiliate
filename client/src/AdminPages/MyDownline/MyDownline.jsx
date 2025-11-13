@@ -100,9 +100,9 @@ const MyDownline = () => {
     approveMutation.mutate({
       id: selectedUser._id,
       commissions: {
-        commission: formData.get("commission") || 0,
+        gameLossCommission: formData.get("gameLossCommission") || 0,
         depositCommission: formData.get("depositCommission") || 0,
-        gameCommission: formData.get("gameCommission") || 0,
+        referCommission: formData.get("referCommission") || 0,
       },
     });
   };
@@ -256,12 +256,12 @@ const MyDownline = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm text-gray-300 mb-1">
-                  Commission (%)
+                 Game Loss Commission (%)
                 </label>
                 <input
                   type="number"
-                  name="commission"
-                  defaultValue={selectedUser.commission || 0}
+                  name="gameLossCommission"
+                  defaultValue={selectedUser.gameLossCommission || 0}
                   min="0"
                   step="0.01"
                   className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:ring-2 focus:ring-green-500"
@@ -282,12 +282,12 @@ const MyDownline = () => {
               </div>
               <div>
                 <label className="block text-sm text-gray-300 mb-1">
-                  Game Commission (%)
+                  Refer Commission (%)
                 </label>
                 <input
                   type="number"
-                  name="gameCommission"
-                  defaultValue={selectedUser.gameCommission || 0}
+                  name="referCommission"
+                  defaultValue={selectedUser.referCommission || 0}
                   min="0"
                   step="0.01"
                   className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:ring-2 focus:ring-green-500"
