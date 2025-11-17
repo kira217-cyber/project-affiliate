@@ -19,6 +19,8 @@ import siteSettingsRoutes from "./routes/siteSettingsRoutes.js";
 import AdminSiteSettingsRoutes from "./routes/adminSiteSettingsRoutes.js";
 import superAffiliateVideoRoutes from "./routes/superAffiliateVideoRoutes.js";
 import masterAffiliateVideoRoutes from "./routes/masterAffiliateVideoRoutes.js";
+import promotionRoutes from "./routes/promotionRoutes.js";
+import socialLinksRoutes from "./routes/socialLinksRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -51,6 +53,8 @@ app.use("/api/site-settings", siteSettingsRoutes);
 app.use("/api/admin-site-settings", AdminSiteSettingsRoutes);
 app.use("/api/super-affiliate-video", superAffiliateVideoRoutes);
 app.use("/api/master-affiliate-video", masterAffiliateVideoRoutes);
+app.use('/api/promotions', promotionRoutes);
+app.use('/api/social-links', socialLinksRoutes);
 
 // Test route
 app.get("/", (req, res) => {
