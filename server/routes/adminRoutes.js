@@ -9,13 +9,15 @@ router.post("/register", async (req, res) => {
   const { username, email, whatsapp, password, referral } = req.body;
 
   try {
-    // ইউজার আগে থেকে আছে কিনা?
+    // Check if user already exists
     const exists = await Admin.findOne({ $or: [{ email }, { username }] });
     if (exists) return res.status(400).json({ message: "User already exists" });
 
     let referredBy = null;
+    let referrer = null;
+
     if (referral) {
-      const referrer = await Admin.findOne({ referralCode: referral });
+      referrer = await Admin.findOne({ referralCode: referral });
       if (!referrer)
         return res.status(400).json({ message: "Invalid referral code" });
       referredBy = referrer._id;
@@ -31,17 +33,34 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       role: referral ? "master-affiliate" : "super-affiliate",
       referredBy,
-      isActive: referral ? false : false, // রেফারেল হলে পেন্ডিং
+      isActive: false, // সবাই প্রথমে inactive থাকবে
     });
 
     const savedUser = await user.save();
 
-    // রেফারারের pendingRequests এ নতুন ইউজার যোগ করো
-    if (referredBy) {
-      await Admin.findByIdAndUpdate(referredBy, {
-        $push: { pendingRequests: savedUser._id },
-        $push: { createdUsers: savedUser._id },
+    // যদি রেফারার থাকে (মানে রেফার লিংক দিয়ে এসেছে)
+    if (referrer) {
+      // রেফারারের createdUsers ও pendingRequests এ যোগ করা
+      await Admin.findByIdAndUpdate(referrer._id, {
+        $push: {
+          createdUsers: savedUser._id,
+          pendingRequests: savedUser._id,
+        },
       });
+
+      // এখানে মূল কাজ: Refer Commission যোগ করা
+      const referBonus = referrer.referCommission || 0; // যদি ১০ হয়, তাহলে ১০ টাকা
+
+      if (referBonus > 0) {
+        await Admin.findByIdAndUpdate(referrer._id, {
+          $inc: {
+            referCommissionBalance: referBonus, // বোনাস যোগ হচ্ছে
+          },
+        });
+
+        // অপশনাল: লগ রাখতে চাইলে একটা Transaction মডেলে সেভ করতে পারো
+        // await new ReferralBonus({ referrer: referrer._id, newUser: savedUser._id, amount: referBonus }).save();
+      }
     }
 
     res.status(201).json({
@@ -58,29 +77,33 @@ router.post("/register", async (req, res) => {
     });
   } catch (err) {
     console.error("Register error:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message || "Server error" });
   }
 });
 
 // routes/auth.js
 router.post("/main/register", async (req, res) => {
   const { username, email, whatsapp, password, referral } = req.body;
+
   try {
-    // ইউজার আগে থেকে আছে?
+    // ইউজার আগে থেকে আছে কিনা?
     const exists = await Admin.findOne({ $or: [{ email }, { username }] });
     if (exists) return res.status(400).json({ message: "User already exists" });
 
     let referredBy = null;
+    let referrer = null;
     let newUserRole = "user"; // ডিফল্ট রোল
 
+    // রেফারেল কোড চেক
     if (referral) {
-      const referrer = await Admin.findOne({ referralCode: referral });
-      if (!referrer)
+      referrer = await Admin.findOne({ referralCode: referral });
+      if (!referrer) {
         return res.status(400).json({ message: "Invalid referral code" });
+      }
 
       referredBy = referrer._id;
 
-      // রেফারারের রোল চেক করে নতুন ইউজারের রোল নির্ধারণ
+      // রেফারারের রোল অনুযায়ী নতুন ইউজারের রোল নির্ধারণ
       if (referrer.role === "super-affiliate") {
         newUserRole = "master-affiliate";
       } else if (referrer.role === "master-affiliate") {
@@ -88,11 +111,14 @@ router.post("/main/register", async (req, res) => {
       }
     }
 
+    // পাসওয়ার্ড হ্যাশ
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    // isActive লজিক: শুধু master-affiliate হলে false
+
+    // isActive: master-affiliate হলে approval দরকার, অন্যরা সরাসরি active
     const isActive = newUserRole === "master-affiliate" ? false : true;
 
+    // নতুন ইউজার তৈরি
     const user = new Admin({
       username,
       email,
@@ -105,14 +131,33 @@ router.post("/main/register", async (req, res) => {
 
     const savedUser = await user.save();
 
-    // রেফারারের ডাটা আপডেট
-    if (referredBy) {
-      await Admin.findByIdAndUpdate(referredBy, {
-        $push: { pendingRequests: savedUser._id },
-        $push: { createdUsers: savedUser._id },
-      });
+    // রেফারারের ডাটা আপডেট + রেফার বোনাস (শুধু Master → User হলে)
+    if (referredBy && referrer) {
+      const updateData = {
+        $push: {
+          pendingRequests: savedUser._id,
+          createdUsers: savedUser._id,
+        },
+      };
+
+      // মূল ফিচার: Master Affiliate → User রেজিস্ট্রেশনে রেফার বোনাস
+      if (
+        newUserRole === "user" &&
+        ["master-affiliate", "user"].includes(referrer.role)
+      ) {
+        const referBonus = referrer.referCommission || 0;
+
+        if (referBonus > 0) {
+          updateData.$inc = {
+            referCommissionBalance: referBonus,
+          };
+        }
+      }
+
+      await Admin.findByIdAndUpdate(referredBy, updateData);
     }
 
+    // সাকসেস রেসপন্স
     res.status(201).json({
       message: "Registration successful",
       user: {
@@ -367,7 +412,9 @@ router.post("/create/super-affiliates", async (req, res) => {
 
     // Validation
     if (!username || !email || !password || !whatsapp) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+      return res
+        .status(400)
+        .json({ message: "All required fields must be filled" });
     }
 
     // Check if username or email already exists
@@ -431,7 +478,9 @@ router.post("/create/master-affiliates", async (req, res) => {
 
     // Validation
     if (!username || !email || !password || !whatsapp || !referredBy) {
-      return res.status(400).json({ message: "All required fields must be filled" });
+      return res
+        .status(400)
+        .json({ message: "All required fields must be filled" });
     }
 
     // Check if username or email already exists
@@ -439,7 +488,9 @@ router.post("/create/master-affiliates", async (req, res) => {
       $or: [{ username }, { email }],
     });
     if (existingUser) {
-      return res.status(400).json({ message: "Username or Email already exists" });
+      return res
+        .status(400)
+        .json({ message: "Username or Email already exists" });
     }
 
     // Check if referredBy (Super Affiliate) exists
@@ -485,6 +536,98 @@ router.post("/create/master-affiliates", async (req, res) => {
     });
   } catch (error) {
     console.error("Create Master Affiliate Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET all normal users
+router.get("/users", async (req, res) => {
+  try {
+    const users = await Admin.find({ role: "user" }).select("-password");
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// CREATE normal user
+router.post("/create/user", async (req, res) => {
+  const {
+    username,
+    email,
+    password,
+    whatsapp,
+    referredBy,
+    gameLossCommission,
+    depositCommission,
+    referCommission,
+  } = req.body;
+
+  if (!username || !email || !password || !whatsapp || !referredBy)
+    return res.status(400).json({ message: "All fields required" });
+
+  const exists = await Admin.findOne({ $or: [{ username }, { email }] });
+  if (exists)
+    return res.status(400).json({ message: "Username or email exists" });
+
+  const master = await Admin.findById(referredBy);
+  if (!master || master.role !== "master-affiliate")
+    return res.status(400).json({ message: "Invalid Master Affiliate" });
+
+  const salt = await bcrypt.genSalt(10);
+  const hashed = await bcrypt.hash(password, salt);
+
+  const newUser = new Admin({
+    username,
+    email,
+    password: hashed,
+    whatsapp,
+    role: "user",
+    gameLossCommission: parseFloat(gameLossCommission) || 0,
+    depositCommission: parseFloat(depositCommission) || 0,
+    referCommission: parseFloat(referCommission) || 0,
+    referredBy: master._id,
+    isActive: true,
+  });
+
+  await newUser.save();
+  await Admin.findByIdAndUpdate(master._id, {
+    $push: { createdUsers: newUser._id },
+  });
+
+  res.status(201).json({ message: "User created", user: newUser });
+});
+
+// Toggle active
+router.patch("/toggle-user/:id", async (req, res) => {
+  await Admin.findByIdAndUpdate(req.params.id, { isActive: req.body.isActive });
+  res.json({ message: "Updated" });
+});
+
+// Update credentials
+router.patch("/update-user-credentials/:id", async (req, res) => {
+  const { username, password } = req.body;
+  const update = {};
+  if (username) update.username = username;
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    update.password = await bcrypt.hash(password, salt);
+  }
+  await Admin.findByIdAndUpdate(req.params.id, update);
+  res.json({ message: "Updated" });
+});
+
+// PATCH: Update User Commission
+router.patch("/update-user-commission/:id", async (req, res) => {
+  try {
+    const { gameLossCommission, depositCommission, referCommission } = req.body;
+    await Admin.findByIdAndUpdate(req.params.id, {
+      gameLossCommission: parseFloat(gameLossCommission) || 0,
+      depositCommission: parseFloat(depositCommission) || 0,
+      referCommission: parseFloat(referCommission) || 0,
+    });
+    res.json({ message: "Commission updated" });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });

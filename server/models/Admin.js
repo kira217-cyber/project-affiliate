@@ -27,6 +27,9 @@ const adminSchema = new mongoose.Schema(
     gameLossCommission: { type: Number, default: 0 },
     depositCommission: { type: Number, default: 0 },
     referCommission: { type: Number, default: 0 },
+    gameLossCommissionBalance: { type: Number, default: 0 },
+    depositCommissionBalance: { type: Number, default: 0 },
+    referCommissionBalance : { type: Number, default: 0 },
 
     pendingRequests: {
       type: [mongoose.Schema.Types.ObjectId],
