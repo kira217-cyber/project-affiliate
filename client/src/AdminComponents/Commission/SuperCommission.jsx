@@ -4,7 +4,8 @@ import "react-lazy-load-image-component/src/effects/blur.css";
 import { AuthContext } from "../../Context/AuthContext";
 
 const SuperCommission = () => {
-  const { user ,commissionBalance} = useContext(AuthContext);
+  const { user, commissionBalance, referCommissionBalance } =
+    useContext(AuthContext);
   const stats = [
     {
       title: "Total Withdraw Balance",
@@ -23,7 +24,7 @@ const SuperCommission = () => {
     },
     {
       title: "Reffer Commission",
-      value: "0.00",
+      value: referCommissionBalance,
       gradient: "from-green-500 via-lime-400 to-yellow-400",
     },
   ];
